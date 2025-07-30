@@ -1,19 +1,11 @@
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { Provider } from "react-redux";
+import store from "./redux/store.js";
 
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { Provider } from 'react-redux'
-import store from './store/store.js'
-import { ModulePermissionProvider } from './context/ModulePermissionContext.jsx'
-
-createRoot(document.getElementById('root')).render(
-    <Provider store={store}>
-    <ModulePermissionProvider>
+createRoot(document.getElementById("root")).render(
+  <Provider store={store}>
     <App />
-
-    </ModulePermissionProvider>
-    </Provider>
-    
-  
- 
-)
+  </Provider>
+);

@@ -1,12 +1,16 @@
-import { useSelector } from "react-redux";
+
 import { Navigate, Outlet } from "react-router-dom";
+import Cookies from "js-cookie";
 
-const ProtectedRouteAuth = ({ redirectPath = "/login" }) => {
-  const { isAuthenticated, loading } = useSelector((state) => state.user); // ✅ now from unified slice
+const ProtectedRouteAuth = ({ redirectPath = "/" }) => {
+  const token = Cookies.get("auth_token");
 
-  if (loading) return <div>Loading...</div>;
-  if (!isAuthenticated) return <Navigate to={redirectPath} />;
 
+  console.log(" this is the auth token ", token);
+  
+  if (!token) return <Navigate to={redirectPath} replace />;
+
+  // Render nested routes if authenticated
   return <Outlet />;
 };
 
