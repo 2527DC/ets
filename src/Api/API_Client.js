@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 // Read the environment variable
 const baseURL = import.meta.env.VITE_API_URL;
@@ -9,8 +10,15 @@ export const API_CLIENT = axios.create({
 });
 
 // Add request interceptor
+
 API_CLIENT.interceptors.request.use(
   (config) => {
+    const token = Cookies.get("auth_token"); // Replace with your actual cookie name
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     console.log("🔼 Request:", {
       url: config.url,
       method: config.method,
@@ -18,6 +26,7 @@ API_CLIENT.interceptors.request.use(
       data: config.data,
       params: config.params,
     });
+
     return config;
   },
   (error) => {
@@ -25,6 +34,7 @@ API_CLIENT.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 
 // Add response interceptor
 API_CLIENT.interceptors.response.use(

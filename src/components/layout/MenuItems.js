@@ -1,10 +1,109 @@
-import { LayoutDashboard, User, Users2, UserCog, UserPlus, Car, CarTaxiFront, Calendar, ClipboardList, Route, Building2, MessageCircleCode } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users2,
+  UserCog,
+  Calendar,
+  ClipboardList,
+  CarTaxiFront,
+  Building2,
+  Route,
+  MessageCircleCode
+} from 'lucide-react';
 
-export const menuItems = [
-  { path: '/dashboard', name: 'Dashboard', icon: LayoutDashboard, permissionModule: 'dashboard' },
-  { path: '/manage-shift', name: 'Manage Shift', icon: Calendar, permissionModule: 'manage-shift' },
-  { path: '/shift-categories', name: 'Manage Shift Categories', icon: ClipboardList, permissionModule: 'manage-shift-categories' },
-  { path: '/manage-team', name: 'Manage Team', icon: Users2, permissionModule: 'manage-team' },
-  { path: '/role-management', name: 'Role Management', icon: Users2, permissionModule: 'role-management' },
-  { path: '/manage-company', name: 'Manage Companies', icon: Users2, permissionModule: 'manage-company' },
-];
+// Module to menu item mapping
+export const moduleMenuMap = {
+  'admin-dashboard': { 
+    path: '/dashboard', 
+    name: 'Dashboard', 
+    icon: LayoutDashboard 
+  },
+  'role-management': { 
+    path: '/role-management', 
+    name: 'Role Management', 
+    icon: UserCog 
+  },
+  'manage-team': { 
+    path: '/manage-team', 
+    name: 'Manage Team', 
+    icon: Users2 
+  },
+  'manage-clients': { 
+    path: '/manage-clients', 
+    name: 'Manage Clients', 
+    icon: Users2 
+  },
+  'scheduling-management': { 
+    path: null, // Parent with children has no direct path
+    name: 'Scheduling', 
+    icon: Calendar 
+  },
+  'manage-shift': { 
+    path: '/manage-shift', 
+    name: 'Manage Shifts', 
+    icon: Calendar 
+  },
+  'manage-shift-categories': { 
+    path: '/shift-categories', 
+    name: 'Shift Categories', 
+    icon: ClipboardList 
+  },
+  'manage-drivers': { 
+    path: '/manage-drivers', 
+    name: 'Manage Drivers', 
+    icon: CarTaxiFront 
+  },
+  'manage-vendors': { 
+    path: '/manage-vendors', 
+    name: 'Manage Vendors', 
+    icon: Building2 
+  },
+  'routing': { 
+    path: '/routing', 
+    name: 'Routing', 
+    icon: Route 
+  },
+  'tracking': { 
+    path: '/tracking', 
+    name: 'Tracking', 
+    icon: MessageCircleCode 
+  },
+  'audit-report': { 
+    path: '/audit-report', 
+    name: 'Audit Report', 
+    icon: ClipboardList 
+  }
+};
+
+// Generate menu items from allowed modules
+export const generateMenuItems = (allowedModules) => {
+  const menuItems = [];
+  
+  allowedModules.forEach(module => {
+    if (!module.canRead) return;
+    
+    const menuConfig = moduleMenuMap[module.id];
+    if (!menuConfig) return;
+    
+    const menuItem = { 
+      ...menuConfig,
+      permissionModule: module.id
+    };
+    
+    // Handle parent modules with children
+    if (module.children && module.children.length > 0) {
+      menuItem.subItems = module.children
+        .filter(child => child.canRead && moduleMenuMap[child.id])
+        .map(child => ({
+          ...moduleMenuMap[child.id],
+          permissionModule: child.id
+        }));
+    }
+    
+    // Only add if it's a top-level item or has subItems
+    if (menuItem.path || (menuItem.subItems && menuItem.subItems.length > 0)) {
+      menuItems.push(menuItem);
+    }
+  });
+  
+  return menuItems;
+};

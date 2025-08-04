@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { LogOut, ChevronDown, Pin, PinOff } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { menuItems } from "./MenuItems"; // You must have a static version of this
+import { generateMenuItems } from "./MenuItems";
+import { logDebug, logError } from "../../utils/logger";
+import { useDispatch } from "react-redux";
+import { logout } from "../../redux/features/auth/authSlice";
 
 const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
   const location = useLocation();
+  const dispatch = useDispatch();
   const [openDropdown, setOpenDropdown] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [menuItems, setMenuItems] = useState([]);
+
+  useEffect(() => {
+    logDebug("Sidebar mounted or location changed:", location.pathname);
+    // Get permissions from storage or Redux store
+    const permissions = JSON.parse(sessionStorage.getItem('userPermissions'));
+    if (permissions) {
+      setMenuItems(generateMenuItems(permissions));
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -21,7 +35,7 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
     return () => window.removeEventListener("resize", checkMobile);
   }, [setIsPinned]);
 
-const toggleDropdown = (menuName) => {
+  const toggleDropdown = (menuName) => {
     setOpenDropdown((prev) => ({
       ...prev,
       [menuName]: !prev[menuName],
@@ -49,9 +63,11 @@ const toggleDropdown = (menuName) => {
   };
 
   const handleLogout = () => {
-    alert("Logged out (dummy)");
+    dispatch(logout()); // Use your Redux logout action
+    sessionStorage.removeItem('userPermissions');
+    Cookies.remove('auth_token');
+    window.location.href = '/login'; // Full reload to clear state
   };
-
   const sidebarWidth = isOpen ? "w-64" : "w-16";
   const sidebarClass = `h-screen ${sidebarWidth} bg-gray-800 text-white flex flex-col fixed left-0 transition-all duration-300 ease-in-out z-50`;
 
@@ -66,7 +82,7 @@ const toggleDropdown = (menuName) => {
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         {isOpen && (
           <>
-            <h2 className="text-xl font-bold">MLT ETS</h2>
+            <h2 className="text-xl font-bold">COMPANNY NAME</h2>
             {!isMobile && (
               <button
                 onClick={togglePin}
@@ -86,7 +102,7 @@ const toggleDropdown = (menuName) => {
       <nav className="flex-1 overflow-y-auto p-2 space-y-2">
         {menuItems.map((item) => (
           <div key={item.path || item.name} className="relative">
-            {item.subItems ? (
+            {item.subItems && item.subItems.length > 0 ? (
               <>
                 <button
                   onClick={() => toggleDropdown(item.name)}
