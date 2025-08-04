@@ -4,12 +4,11 @@ import { Navigate } from "react-router-dom";
 export const PublicRoute = ({ children }) => {
   const token = Cookies.get("auth_token");
 
+  console.log("this is the auth token", token);
 
-  console.log(" this is the auth token ", token);
-  
-
+  // 🛠️ Return the Navigate component when token exists
   if (token) {
-    Navigate("/dashboard");
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
