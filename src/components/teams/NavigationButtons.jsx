@@ -10,6 +10,8 @@ const NavigationButtons = ({
   isSubmitting,
   mode,
 }) => {
+
+  
   return (
     <div className="flex justify-between mt-6">
       {!isFirstStep && mode !== 'view' && (

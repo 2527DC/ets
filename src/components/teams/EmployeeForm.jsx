@@ -7,15 +7,20 @@ import HeaderWithAction from '../HeaderWithAction';
 import EmployeeAddressGoogleMapView from '../Map';
 import { ToastContainer, toast } from 'react-toastify';
 import { format, parseISO } from 'date-fns';
+import { logDebug } from '../../utils/logger';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAllTeams } from '../../redux/features/user/userSelectors';
+import { setTeams } from '../../redux/features/user/userSlice';
+import { API_CLIENT } from '../../Api/API_Client';
+import { useNavigate } from 'react-router-dom';
 
 const initialFormData = {
-  employeeName: '',
-  employee_code: '',
-  emailId: '',
+  name: '',
+  userId: '',
+  email: '',
   gender: '',
-  mobileNumber: '',
+  phone: '',
   alternate_mobile_number: '',
-  office: '',
   specialNeed: 'None',
   dateRange: {
     startDate: new Date().toISOString().split('T')[0],
@@ -38,6 +43,10 @@ const EmployeeForm = ({ mode = 'create' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(mode !== 'create');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const teams = useSelector(selectAllTeams);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [dateRangeSelection, setDateRangeSelection] = useState([
     {
       startDate: parseISO(formData.dateRange?.startDate || new Date().toISOString()),
@@ -46,64 +55,11 @@ const EmployeeForm = ({ mode = 'create' }) => {
     },
   ]);
 
-
-  const [backendErrors, setBackendErrors] = useState({});
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-
-  // Mock function to simulate API call
-  const submitFormToBackend = async (formData) => {
-    try {
-      setIsSubmitting(true);
-      // Replace this with your actual API call
-      const response = await mockApiCall(formData);
-      
-      if (response.success) {
-        toast.success(`Employee ${mode === 'create' ? 'created' : 'updated'} successfully`);
-        // Optionally reset form or redirect on success
-        // setFormData(initialFormData);
-      } else {
-        // Handle backend validation errors
-        setBackendErrors(response.errors || {});
-        toast.error('Please fix the errors in the form');
-      }
-    } catch (error) {
-      toast.error('An error occurred while submitting the form');
-      } finally {
-      setIsSubmitting(false);
-      setSubmitAttempted(true);
-    }
-  };
-  
-  const mockApiCall = (data) => {
-    // Simulate API delay
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Mock validation - in real app, this would come from your backend
-        const errors = {};
-        
-        if (!data.employeeName) {
-          errors.employeeName = 'Employee name is required';
-        }
-        if (!data.emailId || !/^\S+@\S+\.\S+$/.test(data.emailId)) {
-          errors.emailId = 'Valid email is required';
-        }
-        // Add other validations as needed
-        
-        if (Object.keys(errors).length > 0) {
-          resolve({ success: false, errors });
-        } else {
-          resolve({ success: true });
-        }
-      }, 1000);
-    });
-  };
-
-
   const handleDateSelect = (ranges) => {
     const { startDate, endDate } = ranges.selection;
     setDateRangeSelection([ranges.selection]);
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       dateRange: {
         startDate: startDate.toISOString().split('T')[0],
@@ -121,18 +77,33 @@ const EmployeeForm = ({ mode = 'create' }) => {
   };
 
   useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await API_CLIENT.get('/users/company-departments');
+        dispatch(setTeams(response.data));
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+        toast.error('Failed to load departments');
+      }
+    };
+
+    if (!teams || teams.length === 0) {
+      fetchTeams();
+    }
+  }, [dispatch, teams]);
+
+  useEffect(() => {
     if (mode !== 'create') {
       const employee = state?.employee;
       if (employee) {
         const mappedData = {
           ...initialFormData,
-          employeeName: employee.username || employee.employeeName || '',
-          employee_code: employee.employee_code || '',
-          emailId: employee.email || employee.emailId || '',
+          name: employee.name || '',
+          userId: employee.userId || '',
+          email: employee.email || '',
           gender: employee.gender || '',
-          mobileNumber: employee.mobile_number || employee.mobileNumber || '',
+          phone:  employee.phone || '',
           alternate_mobile_number: employee.alternate_mobile_number || '',
-          office: employee.office || '',
           specialNeed: employee.specialNeed || 'None',
           department: employee.department || '',
           dateRange: employee.dateRange || initialFormData.dateRange,
@@ -143,62 +114,133 @@ const EmployeeForm = ({ mode = 'create' }) => {
           distance_from_company: employee.distance_from_company || '',
         };
         setFormData(mappedData);
+        
+        // Update date range selection if dateRange exists
+        if (employee.dateRange) {
+          setDateRangeSelection([
+            {
+              startDate: parseISO(employee.dateRange.startDate),
+              endDate: parseISO(employee.dateRange.endDate),
+              key: 'selection',
+            }
+          ]);
+        }
       }
       setIsLoading(false);
     }
-  }, [mode, state]);
+  }, [mode, state, teams]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleCheckboxChange = (name, checked) => {
-    setFormData((prev) => ({ ...prev, [name]: checked }));
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
+  const validatePersonalInfo = (data) => {
+    const errors = {};
+    if (!data.name.trim()) errors.name = 'Employee name is required';
+    if (!data.userId.trim()) errors.userId = 'Employee ID is required';
+    if (!data.email.trim()) errors.email = 'Email is required';
+    if (!data.gender) errors.gender = 'Gender is required';
+    if (!data.department) errors.department = 'Department is required';
+    if (!data.phone) errors.phone = 'Phone No  is required';
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (data.email && !emailRegex.test(data.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    return errors;
+  };
+
+  const validateAddressInfo = (data) => {
+    const errors = {};
+    if (!data.address.trim()) errors.address = 'Address is required';
+    if (!data.latitude || !data.longitude) {
+      errors.location = 'Please select a location on the map';
+    }
+    return errors;
   };
 
   const handleNext = () => {
+    if (currentStep === 'personalInfo') {
+      const validationErrors = validatePersonalInfo(formData);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        toast.error('Please fill out all required fields in Personal Information');
+        return;
+      }
+    }
+    
     setCurrentStep('address');
     if (!completedSteps.includes('personalInfo')) {
-      setCompletedSteps((prev) => [...prev, 'personalInfo']);
+      setCompletedSteps(prev => [...prev, 'personalInfo']);
     }
   };
 
   const handleBack = () => {
     setCurrentStep('personalInfo');
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitAttempted(true);
+    setIsSubmitting(true);
     
-    // First validate locally
-    const localErrors = validateForm(formData);
-    if (Object.keys(localErrors).length > 0) {
-      setErrors(localErrors);
-      toast.error('Please fix the form errors');
+    // Final validation
+    const personalErrors = validatePersonalInfo(formData);
+    const addressErrors = validateAddressInfo(formData);
+    const allErrors = { ...personalErrors, ...addressErrors };
+    
+    if (Object.keys(allErrors).length > 0) {
+      setErrors(allErrors);
+      toast.error('Please fix all errors before submitting');
+      setIsSubmitting(false);
       return;
     }
     
-    // If local validation passes, submit to backend
-    await submitFormToBackend(formData);
+    try {
+      logDebug('Submitting form data:', formData);
+      
+      // Prepare the data for submission
+ 
+      
+      // Here you would typically make your API call
+      // const response = mode === 'create' 
+      //   ? await API_CLIENT.post('/employees', submissionData)
+      //   : await API_CLIENT.put(`/employees/${formData.userId}`, submissionData);
+      
+      // For now, we'll simulate a successful submission
+      setTimeout(() => {
+        toast.success(`Employee ${mode === 'create' ? 'created' : 'updated'} successfully!`);
+        setIsSubmitting(false);
+        
+        // In a real app, you might redirect or reset the form here
+        if (mode === 'create') {
+          setFormData(initialFormData);
+          setCurrentStep('personalInfo');
+          setCompletedSteps([]);
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast.error(`Failed to ${mode === 'create' ? 'create' : 'update'} employee`);
+      setIsSubmitting(false);
+    }
   };
-
-  const validateForm = (data) => {
-    const errors = {};
-    if (!data.employeeName) errors.employeeName = 'Employee name is required';
-    if (!data.employee_code) errors.employee_code = 'Employee ID is required';
-    if (!data.emailId) errors.emailId = 'Email is required';
-    if (!data.gender) errors.gender = 'Gender is required';
-    if (!data.department) errors.department = 'Department is required';
-    return errors;
-  };
-
-  // Combine local and backend errors
-  const allErrors = {
-    ...errors,
-    ...backendErrors
-  };
-
 
   const isFirstStep = currentStep === 'personalInfo';
   const isLastStep = currentStep === 'address';
@@ -214,7 +256,7 @@ const EmployeeForm = ({ mode = 'create' }) => {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={5000} />
       <HeaderWithAction 
         title={mode === 'create' ? 'NEW EMPLOYEE' : mode === 'edit' ? 'EDIT EMPLOYEE' : 'EMPLOYEE DETAILS'} 
         showBackButton={true} 
@@ -235,6 +277,7 @@ const EmployeeForm = ({ mode = 'create' }) => {
                 dateRangeSelection={dateRangeSelection}
                 handleDateSelect={handleDateSelect}
                 displayDateRange={displayDateRange}
+                teams={teams}
               />
             </div>
             <div className="mt-8">
@@ -248,7 +291,7 @@ const EmployeeForm = ({ mode = 'create' }) => {
             </div>
             <NavigationButtons
               currentStep="complete"
-              onSubmit={handleSubmit}
+             onSubmit={()=>navigate(-1)}
               isLastStep={true}
               mode={mode}
             />
@@ -269,6 +312,7 @@ const EmployeeForm = ({ mode = 'create' }) => {
                   dateRangeSelection={dateRangeSelection}
                   handleDateSelect={handleDateSelect}
                   displayDateRange={displayDateRange}
+                  teams={teams}
                 />
               ) : (
                 <EmployeeAddressGoogleMapView 

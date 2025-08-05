@@ -27,11 +27,6 @@ export const moduleMenuMap = {
     name: 'Manage Team', 
     icon: Users2 
   },
-  'manage-clients': { 
-    path: '/manage-clients', 
-    name: 'Manage Clients', 
-    icon: Users2 
-  },
   'scheduling-management': { 
     path: null, // Parent with children has no direct path
     name: 'Scheduling', 
@@ -56,6 +51,11 @@ export const moduleMenuMap = {
     path: '/manage-vendors', 
     name: 'Manage Vendors', 
     icon: Building2 
+  },
+  'manage-vehicles': { 
+    path: '/manage-vehicles', 
+    name: 'Vehicle Management', 
+    icon: Calendar 
   },
   'routing': { 
     path: '/routing', 

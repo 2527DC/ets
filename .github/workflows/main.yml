@@ -1,4 +1,4 @@
-name: BUID AND PUSH TO DOCKER HUB
+name: BUILD AND PUSH TO DOCKER HUB
 
 on:
  push:

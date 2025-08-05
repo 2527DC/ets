@@ -2,13 +2,12 @@ import React, { useRef, useEffect } from 'react';
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import { format, parseISO } from 'date-fns';
+import { logDebug } from '../../utils/logger';
 
 const PersonalInfoForm = ({
   formData,
   onChange,
   errors,
-  onCheckboxChange,
   isReadOnly,
   showDatePicker,
   setShowDatePicker,
@@ -19,7 +18,7 @@ const PersonalInfoForm = ({
   loadingTeams = false
 }) => {
   const datePickerRef = useRef(null);
-
+logDebug('this is the teams', teams);
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
@@ -52,15 +51,15 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="text"
-            name="employeeName"
-            value={formData.employeeName || ''}
+            name="name"
+            value={formData.name || ''}
             onChange={onChange}
-            className={getInputClasses(errors.employeeName)}
+            className={getInputClasses(errors.name)}
             placeholder="Enter employee name"
             disabled={isReadOnly}
           />
-          {errors.employeeName && (
-            <p className="mt-1 text-sm text-red-500">{errors.employeeName}</p>
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-500">{errors.name}</p>
           )}
         </div>
 
@@ -71,15 +70,15 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="text"
-            name="employee_code"
-            value={formData.employee_code || ''}
+            name="userId"
+            value={formData.userId || ''}
             onChange={onChange}
-            className={getInputClasses(errors.employee_code)}
+            className={getInputClasses(errors.userId)}
             placeholder="Enter employee ID"
             disabled={isReadOnly}
           />
-          {errors.employee_code && (
-            <p className="mt-1 text-sm text-red-500">{errors.employee_code}</p>
+          {errors.userId && (
+            <p className="mt-1 text-sm text-red-500">{errors.userId}</p>
           )}
         </div>
 
@@ -90,15 +89,15 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="email"
-            name="emailId"
-            value={formData.emailId || ''}
+            name="email"
+            value={formData.email || ''}
             onChange={onChange}
-            className={getInputClasses(errors.emailId)}
+            className={getInputClasses(errors.email)}
             placeholder="Enter email ID"
             disabled={isReadOnly}
           />
-          {errors.emailId && (
-            <p className="mt-1 text-sm text-red-500">{errors.emailId}</p>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-500">{errors.email}</p>
           )}
         </div>
 
@@ -131,13 +130,17 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="tel"
-            name="mobileNumber"
-            value={formData.mobileNumber || ''}
+            name="phone"
+            value={formData.phone || ''}
             onChange={onChange}
             className={getInputClasses(false)}
             placeholder="Enter mobile number"
             disabled={isReadOnly}
+
           />
+           {errors.phone && (
+            <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+          )}
         </div>
 
         {/* Alternate Mobile Number */}
@@ -172,7 +175,7 @@ const PersonalInfoForm = ({
             disabled={isReadOnly}
           >
             <option value="None">None</option>
-            <option value="Pregnancy">Pregnancy</option>
+            <option value="PREGNENT">Pregnancy</option>
           </select>
         </div>
 
@@ -226,8 +229,8 @@ const PersonalInfoForm = ({
             >
               <option value="">Select Department</option>
               {teams.map((dept) => (
-                <option key={dept.department_id} value={dept.department_id}>
-                  {dept.department_name}
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
                 </option>
               ))}
             </select>

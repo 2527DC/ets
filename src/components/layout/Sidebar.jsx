@@ -17,8 +17,8 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
     logDebug("Sidebar mounted or location changed:", location.pathname);
     // Get permissions from storage or Redux store
     const permissions = JSON.parse(sessionStorage.getItem('userPermissions'));
-    if (permissions) {
-      setMenuItems(generateMenuItems(permissions));
+    if (permissions.allowedModules) {
+      setMenuItems(generateMenuItems(permissions.allowedModules));
     }
   }, [location.pathname]);
 
