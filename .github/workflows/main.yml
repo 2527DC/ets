@@ -7,9 +7,9 @@ on:
 
 jobs:
   build-and-push-to-docker:
-    runs-on: unbuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - name: echo the  state ment
-        run: echo "check on "
+      -  name: echo the  state ment
+         run: echo "check on "
         
