@@ -8,17 +8,54 @@ import Layout from "./components/layout/layout";
 import EmployeeForm from "./components/teams/EmployeeForm";
 import ProtectedRouteAuth from "./middleware/ProtectedRouteAuth";
 import ManageDepartment from "./pages/ManageDepartment";
-
-// ✅ Toastify imports
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ManageEmployees from "./pages/ManageEmployees";
 import VendorManagement from "./pages/VendorManagement";
 import VehicleManagement from "./pages/VehicleManagement";
 import ShiftManagement from "./pages/ShiftManagement";
+import NoInternetModal from "./components/modal/NoInternetModal";
 
 function App() {
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
+  const [isServerDown, setIsServerDown] = useState(false);
+  const [initialLoadFailed, setInitialLoadFailed] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Monitor network status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Set up Axios response interceptor
+  useEffect(() => {
+    const interceptor = API_CLIENT.interceptors.response.use(
+      response => response,
+      error => {
+        if (
+          error.message === "Network Error" ||
+          error.code === "ERR_NETWORK" ||
+          error.response?.status === 500
+        ) {
+          setIsServerDown(true);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      API_CLIENT.interceptors.response.eject(interceptor);
+    };
+  }, []);
 
   const fetchUserPermissions = async () => {
     try {
@@ -26,8 +63,17 @@ function App() {
       const response = await API_CLIENT.get("/role-permissions/permissions");
       const data = response.data;
       sessionStorage.setItem("userPermissions", JSON.stringify(data));
+      setIsServerDown(false); // Reset server down status if successful
     } catch (error) {
       console.error("Permission fetch error:", error);
+      if (
+        error.message === "Network Error" ||
+        error.code === "ERR_NETWORK" ||
+        error.response?.status === 500
+      ) {
+        setIsServerDown(true);
+        setInitialLoadFailed(true);
+      }
     } finally {
       setPermissionsLoaded(true);
     }
@@ -42,6 +88,36 @@ function App() {
     }
   }, []);
 
+  const handleRetry = async () => {
+    setIsServerDown(false);
+    setInitialLoadFailed(false);
+    window.location.reload();
+    
+  
+    try {
+      await fetchUserPermissions();
+    } catch (error) {
+      setIsServerDown(true);
+    }
+  };
+
+  // Show connection error if either internet is down or server is down
+  const showConnectionError = !isOnline || isServerDown;
+
+  if (initialLoadFailed) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <NoInternetModal 
+          onRetry={handleRetry} 
+          showCloseButton={false}
+          message={!isOnline 
+            ? "No internet connection. Please check your network." 
+            : "Unable to connect to the server. Please try again."}
+        />
+      </div>
+    );
+  }
+
   if (!permissionsLoaded) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -52,8 +128,15 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* ✅ Toast container - should be added once only */}
       <ToastContainer position="top-right" autoClose={3000} />
+      {showConnectionError && (
+        <NoInternetModal 
+          onRetry={handleRetry}
+          message={!isOnline 
+            ? "You're offline. Please check your internet connection." 
+            : "Connection to server lost. Trying to reconnect..."}
+        />
+      )}
 
       <Routes>
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
@@ -63,7 +146,7 @@ function App() {
             <Route path="/dashboard" element={<h1>This is the dashboard</h1>} />
             <Route path="/manage-team" element={<ManageDepartment />} />
             <Route path="/shift-categories" element={<ManageDepartment />} />
-            <Route path="/role-management" element={<h1 > This is the role Managaement  View </h1>} />
+            <Route path="/role-management" element={<h1>This is the role Management View</h1>} />
             <Route path="/manage-company" element={<ManageDepartment />} />
             <Route path="/manage-shift" element={<ShiftManagement />} />
             <Route path="/manage-vendors" element={<VendorManagement />} />

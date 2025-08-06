@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 vps.txt
+etsfrotend.sh
 
 # Editor directories and files
 .vscode/*

@@ -47,7 +47,9 @@ API_CLIENT.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("❌ Response Error:", error.response || error.message);
+    if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
+      window.dispatchEvent(new Event("server-down"));
+    }
     return Promise.reject(error);
   }
 );

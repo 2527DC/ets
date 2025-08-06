@@ -72,10 +72,10 @@ const EmployeeList = ({
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </td>
-                  <td className="p-4">{employee.username}</td>
-                  <td className="p-4">{employee.employee_code}</td>
+                  <td className="p-4">{employee.name}</td>
+                  <td className="p-4">{employee.userId}</td>
                   <td className="p-4">{employee.email}</td>
-                  <td className="p-4">{employee.mobile_number}</td>
+                  <td className="p-4">{employee.phone}</td>
                   <td className="p-4">{employee.gender}</td>
                   <td className="p-4 flex space-x-2" onClick={(e) => e.stopPropagation()}>
                     <button

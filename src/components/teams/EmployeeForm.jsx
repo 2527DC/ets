@@ -55,6 +55,13 @@ const EmployeeForm = ({ mode = 'create' }) => {
     },
   ]);
 
+   if(mode === 'view' && !state?.employee) {
+
+console.log(" this is the sate", state?.employee);
+
+   }
+
+
   const handleDateSelect = (ranges) => {
     const { startDate, endDate } = ranges.selection;
     setDateRangeSelection([ranges.selection]);
@@ -109,8 +116,8 @@ const EmployeeForm = ({ mode = 'create' }) => {
           dateRange: employee.dateRange || initialFormData.dateRange,
           address: employee.address || '',
           landmark: employee.landmark || '',
-          latitude: employee.latitude || '',
-          longitude: employee.longitude || '',
+          latitude: employee.lat || '',
+          longitude: employee.lng || '',
           distance_from_company: employee.distance_from_company || '',
         };
         setFormData(mappedData);
