@@ -9,7 +9,9 @@ const initialState = {
   employees: {
     byId: {},
     allIds: []
-  }
+  },
+  departmentEmployees: {}, // { depId: [employeeId, employeeId...] }
+  lastFetchedDepId: null // <-- add this
 };
 
 // Helper functions for common operations
@@ -38,6 +40,10 @@ const userSlice = createSlice({
         })) };
       }
     },
+    setLastFetchedDepId(state, action) {
+      state.lastFetchedDepId = action.payload;
+    }
+,    
     
     // Add or update a single team
     upsertTeam(state, action) {
@@ -123,6 +129,20 @@ const userSlice = createSlice({
         });
       }
     },
+    setDepartmentEmployees(state, action) {
+      const { depId, employees } = action.payload;
+
+      // Store each employee globally
+      employees.forEach(emp => {
+        state.employees.byId[emp.id] = emp;
+        if (!state.employees.allIds.includes(emp.id)) {
+          state.employees.allIds.push(emp.id);
+        }
+      });
+
+      // Store employee IDs for this department
+      state.departmentEmployees[depId] = employees.map(emp => emp.id);
+    },
     
     // Move employee between teams
     moveEmployee(state, action) {
@@ -148,7 +168,7 @@ export const {
   upsertEmployee,
   addEmployeeToTeam,
   removeEmployeeFromTeam,
-  moveEmployee
+  moveEmployee,  setLastFetchedDepId,setDepartmentEmployees
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -221,10 +221,10 @@ logDebug('this is the teams', teams);
             </p>
           ) : (
             <select
-              name="department"
-              value={formData.department || ''}
+              name="departmentId"
+              value={formData.departmentId || ''}
               onChange={onChange}
-              className={getSelectClasses(errors.department)}
+              className={getSelectClasses(errors.departmentId)}
               disabled={isReadOnly}
             >
               <option value="">Select Department</option>
@@ -235,7 +235,7 @@ logDebug('this is the teams', teams);
               ))}
             </select>
           )}
-          {errors.department && (
+          {errors.departmentId && (
             <p className="mt-1 text-sm text-red-500">{errors.department}</p>
           )}
         </div>

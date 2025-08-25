@@ -37,11 +37,11 @@ export const moduleMenuMap = {
     name: 'Manage Shifts', 
     icon: Calendar 
   },
-  'manage-shift-categories': { 
-    path: '/shift-categories', 
-    name: 'Shift Categories', 
-    icon: ClipboardList 
-  },
+  // 'manage-shift-categories': { 
+  //   path: '/shift-categories', 
+  //   name: 'Shift Categories', 
+  //   icon: ClipboardList 
+  // },
   'manage-drivers': { 
     path: '/manage-drivers', 
     name: 'Manage Drivers', 

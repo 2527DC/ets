@@ -1,37 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import EmployeeList from "../components/teams/EmployeeList";
 import { useNavigate, useParams } from 'react-router-dom';
-import { API_CLIENT } from '../Api/API_Client'; // Assuming you have an API client configured
+import { API_CLIENT } from '../Api/API_Client';
 import { toast } from 'react-toastify';
+import { useSelector, useDispatch } from 'react-redux';
+import { setDepartmentEmployees, setLastFetchedDepId } from '../redux/features/user/userSlice';
 
 const ManageEmployees = () => {
-  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const navigate = useNavigate();
   const { depId } = useParams();
 
-  // Fetch employees for the department
+  const dispatch = useDispatch();
+  const lastFetchedDepId = useSelector(state => state.user.lastFetchedDepId);
+  const employeeIds = useSelector(state => state.user.departmentEmployees[depId] || []);
+  const employees = useSelector(state => employeeIds.map(id => state.user.employees.byId[id]));
+
   useEffect(() => {
+    // Skip fetch if already fetched for this depId
+    if (lastFetchedDepId === depId && employeeIds.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     const fetchDepartmentEmployees = async () => {
       try {
         setLoading(true);
         const response = await API_CLIENT.get(`users/department-employees/${depId}`);
-        setEmployees(response.data);
-        setError('');
+        const { employees, message } = response.data;
+
+        dispatch(setDepartmentEmployees({ depId, employees }));
+        dispatch(setLastFetchedDepId(depId));
+
+        toast.success(message || 'Employees loaded successfully');
       } catch (err) {
-        console.error('Error fetching employees:', err);
-        setError('Failed to load employees. Please try again.');
-        toast.error('Failed to load employees');
+        setError(err.response?.data?.message || 'Something went wrong');
+        toast.error(err.response?.data?.message || 'Failed to load employees');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDepartmentEmployees();
-  }, [depId]); // Re-fetch when department ID changes
+  }, [depId, lastFetchedDepId, employeeIds.length, dispatch]);
 
   const handleCheckboxChange = (id) => {
     setSelectedEmployeeIds((prev) =>
@@ -40,26 +53,26 @@ const ManageEmployees = () => {
   };
 
   const handleRowClick = (employee, e) => {
-    // Prevent navigation if clicking on a checkbox
     if (e.target.type === 'checkbox') return;
-    navigate(`/department/${depId}/employees/${employee.user_id}/view`);
+    navigate(`/department/${depId}/employees/${employee.userId}/view`);
   };
 
   const handleAddClick = () => {
-    navigate(`/department/${depId}/employees/new`);
+    navigate(`/employee/create-employee`);
   };
 
   const handleView = (employee) => {
-    navigate(`/department/${depId}/employees/${employee.id}/view`, {
-      state: { employee },
+    navigate(`/department/${depId}/employees/${employee.userId}/view`, {
+      state: { employee, fromChild: true },
     });
   };
 
   const handleEdit = (employee) => {
-    navigate(`/department/${depId}/employees/${employee.id}/edit`, {
+    navigate(`/department/${depId}/employees/${employee.userId}/edit`, {
       state: { employee },
     });
   };
+
   return (
     <EmployeeList
       employees={employees}

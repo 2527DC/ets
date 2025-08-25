@@ -5,8 +5,8 @@ import PersonalInfoForm from './PersonalInfoForm';
 import NavigationButtons from './NavigationButtons';
 import HeaderWithAction from '../HeaderWithAction';
 import EmployeeAddressGoogleMapView from '../Map';
-import { ToastContainer, toast } from 'react-toastify';
-import { format, parseISO } from 'date-fns';
+import {  toast } from 'react-toastify';
+import { format, parseISO, set } from 'date-fns';
 import { logDebug } from '../../utils/logger';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAllTeams } from '../../redux/features/user/userSelectors';
@@ -21,17 +21,13 @@ const initialFormData = {
   gender: '',
   phone: '',
   alternate_mobile_number: '',
-  specialNeed: 'None',
-  dateRange: {
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0]
-  },
+ 
   address: '',
   landmark: '',
-  latitude: '',
-  longitude: '',
+  lat: null,
+  lng: null,
   distance_from_company: '',
-  department: ''
+  departmentId: ''
 };
 
 const EmployeeForm = ({ mode = 'create' }) => {
@@ -76,13 +72,10 @@ console.log(" this is the sate", state?.employee);
   };
 
   const displayDateRange = () => {
-    const { startDate, endDate } = formData.dateRange || {};
-    if (startDate && endDate) {
-      return `${format(parseISO(startDate), 'dd MMM yyyy')} - ${format(parseISO(endDate), 'dd MMM yyyy')}`;
-    }
-    return '';
+    const { startDate, endDate } = dateRangeSelection[0];
+    if (!startDate || !endDate) return "";
+    return `${format(startDate, "yyyy-MM-dd")} - ${format(endDate, "yyyy-MM-dd")}`;
   };
-
   useEffect(() => {
     const fetchTeams = async () => {
       try {
@@ -110,25 +103,24 @@ console.log(" this is the sate", state?.employee);
           email: employee.email || '',
           gender: employee.gender || '',
           phone:  employee.phone || '',
-          alternate_mobile_number: employee.alternate_mobile_number || '',
-          specialNeed: employee.specialNeed || 'None',
-          department: employee.department || '',
-          dateRange: employee.dateRange || initialFormData.dateRange,
+          alternate_mobile_number: employee.alternateMobileNumber || '',
+          specialNeed: employee.specialNeed || 'NONE',
+          departmentId: employee.departmentId || '',
           address: employee.address || '',
           landmark: employee.landmark || '',
-          latitude: employee.lat || '',
-          longitude: employee.lng || '',
+          lat: employee.lat || '',
+          lng: employee.lng || '',
           distance_from_company: employee.distance_from_company || '',
         };
         setFormData(mappedData);
         
         // Update date range selection if dateRange exists
-        if (employee.dateRange) {
+        if (employee?.specialNeedStart && employee?.specialNeedEnd) {
           setDateRangeSelection([
             {
-              startDate: parseISO(employee.dateRange.startDate),
-              endDate: parseISO(employee.dateRange.endDate),
-              key: 'selection',
+              startDate: new Date(employee.specialNeedStart),
+              endDate: new Date(employee.specialNeedEnd),
+              key: "selection"
             }
           ]);
         }
@@ -139,8 +131,15 @@ console.log(" this is the sate", state?.employee);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+  
+    setFormData(prev => ({
+      ...prev,
+      [name]:
+        name === 'departmentId' || name === 'roleId' // fields you want as integers
+          ? value === '' ? '' : parseInt(value, 10)
+          : value
+    }));
+  
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -150,6 +149,7 @@ console.log(" this is the sate", state?.employee);
       });
     }
   };
+  
 
   const handleCheckboxChange = (name, checked) => {
     setFormData(prev => ({ ...prev, [name]: checked }));
@@ -161,7 +161,7 @@ console.log(" this is the sate", state?.employee);
     if (!data.userId.trim()) errors.userId = 'Employee ID is required';
     if (!data.email.trim()) errors.email = 'Email is required';
     if (!data.gender) errors.gender = 'Gender is required';
-    if (!data.department) errors.department = 'Department is required';
+    if (!data.departmentId) errors.departmentId = 'Department is required';
     if (!data.phone) errors.phone = 'Phone No  is required';
     
     // Validate email format
@@ -176,7 +176,7 @@ console.log(" this is the sate", state?.employee);
   const validateAddressInfo = (data) => {
     const errors = {};
     if (!data.address.trim()) errors.address = 'Address is required';
-    if (!data.latitude || !data.longitude) {
+    if (!data.lat || !data.lng) {
       errors.location = 'Please select a location on the map';
     }
     return errors;
@@ -205,49 +205,68 @@ console.log(" this is the sate", state?.employee);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+  
     // Final validation
     const personalErrors = validatePersonalInfo(formData);
     const addressErrors = validateAddressInfo(formData);
     const allErrors = { ...personalErrors, ...addressErrors };
-    
+  
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors);
+      logDebug('Form submission errors:', allErrors);
       toast.error('Please fix all errors before submitting');
       setIsSubmitting(false);
       return;
     }
-    
+  
     try {
       logDebug('Submitting form data:', formData);
-      
-      // Prepare the data for submission
- 
-      
-      // Here you would typically make your API call
-      // const response = mode === 'create' 
-      //   ? await API_CLIENT.post('/employees', submissionData)
-      //   : await API_CLIENT.put(`/employees/${formData.userId}`, submissionData);
-      
-      // For now, we'll simulate a successful submission
-      setTimeout(() => {
+  
+      // Prepare the data for submission (modify according to API requirements)
+      const submissionData = {
+        ...formData,
+        // You can transform or filter fields if needed
+      };
+  
+      // Make the API call
+      const response =
+        mode === 'create'
+          ? await API_CLIENT.post('/users/employee', submissionData)
+          : await API_CLIENT.put(`/employees/${formData.userId}`, submissionData);
+  
+      if (response.status >= 200 && response.status < 300) {
         toast.success(`Employee ${mode === 'create' ? 'created' : 'updated'} successfully!`);
-        setIsSubmitting(false);
-        
-        // In a real app, you might redirect or reset the form here
         if (mode === 'create') {
           setFormData(initialFormData);
           setCurrentStep('personalInfo');
           setCompletedSteps([]);
+   
         }
-      }, 1000);
-      
+      } else {
+        toast.error(response.data?.message || `Failed to ${mode === 'create' ? 'create' : 'update'} employee`);
+      }
+  
     } catch (error) {
       console.error('Submission error:', error);
-      toast.error(`Failed to ${mode === 'create' ? 'create' : 'update'} employee`);
+
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors
+          .map(err => `${err.message}`) // format: "phone: Phone number must be exactly 10 digits"
+          .join('\n'); // join them with line breaks
+      
+        toast.error(errorMessages);
+      } else {
+        toast.error(
+          error.response?.data?.message ||
+          `Failed to ${mode === 'create' ? 'create' : 'update'} employee`
+        );
+      }
+      
+    } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const isFirstStep = currentStep === 'personalInfo';
   const isLastStep = currentStep === 'address';
@@ -263,7 +282,6 @@ console.log(" this is the sate", state?.employee);
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={5000} />
       <HeaderWithAction 
         title={mode === 'create' ? 'NEW EMPLOYEE' : mode === 'edit' ? 'EDIT EMPLOYEE' : 'EMPLOYEE DETAILS'} 
         showBackButton={true} 
@@ -323,6 +341,7 @@ console.log(" this is the sate", state?.employee);
                 />
               ) : (
                 <EmployeeAddressGoogleMapView 
+                handleInputChange={handleInputChange}
                   formData={formData} 
                   setFormData={setFormData}
                   setErrors={setErrors}

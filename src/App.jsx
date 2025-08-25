@@ -15,7 +15,8 @@ import VendorManagement from "./pages/VendorManagement";
 import VehicleManagement from "./pages/VehicleManagement";
 import ShiftManagement from "./pages/ShiftManagement";
 import NoInternetModal from "./components/modal/NoInternetModal";
-
+import DriverManagement from "./pages/DriverManagement";
+import Practice from "./pages/Practice";
 function App() {
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [isServerDown, setIsServerDown] = useState(false);
@@ -139,22 +140,28 @@ function App() {
       )}
 
       <Routes>
+      <Route path="/practice" element={<Practice/>} />
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
-
+       
         <Route element={<ProtectedRouteAuth />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<h1>This is the dashboard</h1>} />
             <Route path="/manage-team" element={<ManageDepartment />} />
             <Route path="/shift-categories" element={<ManageDepartment />} />
             <Route path="/role-management" element={<h1>This is the role Management View</h1>} />
+            <Route path="/manage-drivers" element={<DriverManagement/>} />
+
             <Route path="/manage-company" element={<ManageDepartment />} />
             <Route path="/manage-shift" element={<ShiftManagement />} />
             <Route path="/manage-vendors" element={<VendorManagement />} />
             <Route path="/manage-vehicles" element={<VehicleManagement />} />
             <Route path="/employee/create-employee" element={<EmployeeForm />} />
             <Route path="/department/:depId/employees" element={<ManageEmployees />} />
-            <Route path="/department/:depId/employees/:employeeId/edit" element={<EmployeeForm mode="edit" />} />
-            <Route path="/department/:depId/employees/:employeeId/view" element={<EmployeeForm mode="view" />} />
+            <Route path="/department/:depId/employees/:userId/edit" element={<EmployeeForm mode="edit" />} />
+            <Route path="/department/:depId/employees/:userId/view" element={<EmployeeForm mode="view" />} />
+            <Route path="/tracking" element={<h1> This is the screen of Tarcking </h1>} />
+            <Route path="/routing" element={<h1> This is the screen of  Routing  </h1>} />
+            <Route path="/audit-report" element={<h1> This is the screen of  audit-report  </h1>} />
           </Route>
         </Route>
 

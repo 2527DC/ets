@@ -23,11 +23,11 @@ const Modal = ({ show, title, message, onClose }) => {
   );
 };
 
-const EmployeeAddressGoogleMapView = ({ formData, setFormData, setErrors, isReadOnly }) => {
+const EmployeeAddressGoogleMapView = ({ formData, setFormData, setErrors, isReadOnly ,handleInputChange }) => {
   const API_KEY = import.meta.env.VITE_GOOGLE_API || '';
   const [homePosition, setHomePosition] = useState(
-    formData.latitude && formData.longitude
-      ? { lat: parseFloat(formData.latitude), lng: parseFloat(formData.longitude) }
+    formData.lat && formData.lng
+      ? { lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) }
       : null
   );
   const [distance, setDistance] = useState(formData.distance_from_company || null);
@@ -72,24 +72,16 @@ const EmployeeAddressGoogleMapView = ({ formData, setFormData, setErrors, isRead
     }
   }, [homePosition, calculateDistance, setFormData, setErrors, isReadOnly]);
 
-  const handleInputChange = (e) => {
-    if (isReadOnly) return;
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[name];
-      return newErrors;
-    });
-  };
+
+  
 
   const handlePositionChange = (position) => {
     if (isReadOnly) return;
     setHomePosition(position);
     setFormData((prev) => ({
       ...prev,
-      latitude: position ? String(position.lat) : '',
-      longitude: position ? String(position.lng) : '',
+      lat: position ? String(position.lat) : '',
+      lng: position ? String(position.lng) : '',
     }));
   };
 
@@ -129,14 +121,14 @@ const EmployeeAddressGoogleMapView = ({ formData, setFormData, setErrors, isRead
           <span className="text-gray-700 mb-1">Latitude</span>
           <input
             type="number"
-            name="latitude"
-            value={formData.latitude}
+            name="lat"
+            value={formData.lat}
             onChange={(e) => {
               if (isReadOnly) return;
               handleInputChange(e);
               setHomePosition((prev) => ({
                 lat: parseFloat(e.target.value) || 0,
-                lng: prev ? prev.lng : parseFloat(formData.longitude) || 0,
+                lng: prev ? prev.lng : parseFloat(formData.lng) || 0,
               }));
             }}
             placeholder="Latitude"
@@ -148,13 +140,13 @@ const EmployeeAddressGoogleMapView = ({ formData, setFormData, setErrors, isRead
           <span className="text-gray-700 mb-1">Longitude</span>
           <input
             type="number"
-            name="longitude"
-            value={formData.longitude}
+            name="lng"
+            value={formData.lng}
             onChange={(e) => {
               if (isReadOnly) return;
               handleInputChange(e);
               setHomePosition((prev) => ({
-                lat: prev ? prev.lat : parseFloat(formData.latitude) || 0,
+                lat: prev ? prev.lat : parseFloat(formData.lat) || 0,
                 lng: parseFloat(e.target.value) || 0,
               }));
             }}

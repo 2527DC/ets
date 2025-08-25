@@ -12,6 +12,7 @@ export const API_CLIENT = axios.create({
 // Add request interceptor
 
 API_CLIENT.interceptors.request.use(
+  
   (config) => {
     const token = Cookies.get("auth_token"); // Replace with your actual cookie name
 

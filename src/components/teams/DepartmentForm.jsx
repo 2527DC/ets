@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { API_CLIENT } from '../../Api/API_Client';
-import { logDebug, logError } from '../../utils/logger';
-import { upsertTeam } from '../../redux/features/user/userSlice';
 
-const DepartmentForm = ({ onClose }) => {
-  const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+const DepartmentForm = ({ onClose, onSuccess, initialData = null }) => {
+  const isEditMode = Boolean(initialData);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+
+  useEffect(() => {
+    if (isEditMode) {
+      setFormData({
+        name: initialData.name || '',
+        description: initialData.description || ''
+      });
+    }
+  }, [isEditMode, initialData]);
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -22,27 +25,30 @@ const DepartmentForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      logDebug("Creating team with data:", formData);
-      const response = await API_CLIENT.post('/users/create-department', formData);
-      
-      // Dispatch the action to update Redux store
-      dispatch(upsertTeam({
-        id: response.data.team.id,
-        name: response.data.team.name,
-        companyId: response.data.team.companyId,
-        description: response.data.team.description,
-        employeeIds: [] // Initialize with empty array
-      }));
+      const endpoint = isEditMode
+        ? `/users/departments/${initialData.id}`
+        : '/users/create-department';
 
-      toast.success('Team created successfully');
-      onClose(); // Close the modal
+      const method = isEditMode ? 'put' : 'post';
+
+      const { data } = await API_CLIENT[method](endpoint, formData);
+
+      toast.success(isEditMode ? 'Team updated successfully' : 'Team created successfully');
+
+      // Notify parent so it can update Redux
+      onSuccess(data.team);
+
     } catch (error) {
-      logError("Error creating team:", error);
-      toast.error('Failed to create team' + (error.response?.data?.message || ''));
+      toast.error(
+        (isEditMode ? 'Failed to update team ' : 'Failed to create team ') +
+        (error.response?.data?.message || '')
+      );
     }
   };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Name */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Team Name</label>
         <input
@@ -55,6 +61,7 @@ const DepartmentForm = ({ onClose }) => {
         />
       </div>
 
+      {/* Description */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Description</label>
         <textarea
@@ -65,6 +72,7 @@ const DepartmentForm = ({ onClose }) => {
         />
       </div>
 
+      {/* Buttons */}
       <div className="flex justify-end">
         <button
           type="button"
@@ -75,13 +83,14 @@ const DepartmentForm = ({ onClose }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          className={`px-4 py-2 rounded text-white ${isEditMode ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-600 hover:bg-green-700'}`}
         >
-          Create
+          {isEditMode ? 'Update' : 'Create'}
         </button>
       </div>
     </form>
   );
 };
+
 
 export default DepartmentForm;

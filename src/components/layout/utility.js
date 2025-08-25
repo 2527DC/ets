@@ -7,6 +7,7 @@ export const pathTitleMap = {
   '/manage-company': 'Manage Company',
   '/manage-shift': 'Manage Shifts',
   '/manage-vendors': 'Manage Vendors',
+  '/manage-drivers': 'Manage Drivers',
   '/manage-vehicles': 'Manage Vehicles',
   '/employee/create-employee': 'Create Employee',
   '/department': 'Manage Employees', // Base path for all department routes

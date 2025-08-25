@@ -4,46 +4,52 @@ import { UserX } from 'lucide-react';
 import Modal from '../components/modal/Modal';
 import DepartmentForm from '../components/teams/DepartmentForm';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectAllTeams } from '../redux/features/user/userSelectors';
 import { API_CLIENT } from '../Api/API_Client';
-import { setTeams, upsertTeam, removeTeam } from '../redux/features/user/userSlice';
+import {
+  setTeams,
+  upsertTeam,
+  removeTeam
+} from '../redux/features/user/userSlice';
 
 const ManageDepartment = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const teams = useSelector(selectAllTeams);
+
+  // Pull teams from Redux slice
+  const teamsById = useSelector((state) => state.user.teams.byId);
+  const teamIds = useSelector((state) => state.user.teams.allIds);
+  const teams = teamIds.map((id) => teamsById[id]);
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTeams, setSelectedTeams] = useState([]);
   const [editingTeam, setEditingTeam] = useState(null);
 
-  // Fetch teams on component mount
+  // Fetch teams only if not already loaded
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await API_CLIENT.get('/users/company-departments');
-        dispatch(setTeams(response.data));
+        const { data } = await API_CLIENT.get('/users/company-departments');
+        dispatch(setTeams(data));
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
     };
 
-    if (!teams || teams.length === 0) {
+    if (teamIds.length === 0) {
       fetchTeams();
     }
-  }, [dispatch, teams]);
+  }, [dispatch, teamIds.length]);
 
   // Handle team selection
   const handleSelectTeam = (teamId, isSelected) => {
-    setSelectedTeams(prev => 
-      isSelected 
-        ? [...prev, teamId] 
-        : prev.filter(id => id !== teamId)
+    setSelectedTeams((prev) =>
+      isSelected ? [...prev, teamId] : prev.filter((id) => id !== teamId)
     );
   };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedTeams(teams.map(team => team.department_id));
+      setSelectedTeams(teamIds);
     } else {
       setSelectedTeams([]);
     }
@@ -59,7 +65,7 @@ const ManageDepartment = () => {
       try {
         await API_CLIENT.delete(`/users/departments/${teamId}`);
         dispatch(removeTeam({ teamId }));
-        setSelectedTeams(selectedTeams.filter(id => id !== teamId));
+        setSelectedTeams((prev) => prev.filter((id) => id !== teamId));
       } catch (error) {
         console.error('Error deleting team:', error);
       }
@@ -68,16 +74,23 @@ const ManageDepartment = () => {
 
   const handleDeleteSelected = async () => {
     if (selectedTeams.length === 0) return;
-    if (window.confirm(`Are you sure you want to delete ${selectedTeams.length} selected teams?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedTeams.length} selected teams?`
+      )
+    ) {
       try {
         await Promise.all(
-          selectedTeams.map(teamId => 
+          selectedTeams.map((teamId) =>
             API_CLIENT.delete(`/users/departments/${teamId}`)
           )
         );
-        dispatch(setTeams(
-          teams.filter(team => !selectedTeams.includes(team.department_id))
-        ));
+
+        // Remove from store
+        selectedTeams.forEach((id) =>
+          dispatch(removeTeam({ teamId: id }))
+        );
+
         setSelectedTeams([]);
       } catch (error) {
         console.error('Error deleting teams:', error);
@@ -88,17 +101,21 @@ const ManageDepartment = () => {
   const handleFormSuccess = (teamData) => {
     if (editingTeam) {
       // Update existing team
-      dispatch(upsertTeam({
-        ...teamData,
-        department_id: editingTeam.department_id,
-        employeeIds: editingTeam.employeeIds || []
-      }));
+      dispatch(
+        upsertTeam({
+          ...teamData,
+          id: editingTeam.id,
+          employeeIds: editingTeam.employeeIds || []
+        })
+      );
     } else {
       // Add new team
-      dispatch(upsertTeam({
-        ...teamData,
-        employeeIds: []
-      }));
+      dispatch(
+        upsertTeam({
+          ...teamData,
+          employeeIds: []
+        })
+      );
     }
     setEditingTeam(null);
     setIsOpen(false);
@@ -118,13 +135,14 @@ const ManageDepartment = () => {
           >
             <UserX size={16} /> Create Department
           </button>
- 
+
           <button
             onClick={() => navigate('/employee/create-employee')}
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
           >
             <UserX size={16} /> Create Employee
           </button>
+
           {selectedTeams.length > 0 && (
             <button
               onClick={handleDeleteSelected}
@@ -142,9 +160,12 @@ const ManageDepartment = () => {
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
               <th className="px-3 py-2 text-left">
-                <input 
-                  type="checkbox" 
-                  checked={selectedTeams.length === teams.length && teams.length > 0}
+                <input
+                  type="checkbox"
+                  checked={
+                    selectedTeams.length === teamIds.length &&
+                    teamIds.length > 0
+                  }
                   onChange={handleSelectAll}
                 />
               </th>
@@ -158,10 +179,12 @@ const ManageDepartment = () => {
             {teams.map((team) => (
               <tr key={team.id} className="border-b hover:bg-gray-50">
                 <td className="px-3 py-2">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={selectedTeams.includes(team.id)}
-                    onChange={(e) => handleSelectTeam(team.id, e.target.checked)}
+                    onChange={(e) =>
+                      handleSelectTeam(team.id, e.target.checked)
+                    }
                   />
                 </td>
                 <td className="px-3 py-2">{team.name}</td>
@@ -169,9 +192,11 @@ const ManageDepartment = () => {
                 <td className="px-3 py-2">
                   <button
                     className="bg-green-100 text-green-800 px-2 py-0.5 rounded"
-                    onClick={() => navigate(`/department/${team.id}/employees`)}
+                    onClick={() =>
+                      navigate(`/department/${team.id}/employees`)
+                    }
                   >
-                    {team.employee_count || 0}
+                    {team.users || 0}
                   </button>
                 </td>
                 <td className="px-3 py-2">
@@ -196,20 +221,21 @@ const ManageDepartment = () => {
         </table>
       </div>
 
-      <Modal 
-        isOpen={isOpen} 
+      {/* Modal */}
+      <Modal
+        isOpen={isOpen}
         onClose={() => {
           setIsOpen(false);
           setEditingTeam(null);
-        }} 
-        title={editingTeam ? 'Edit Team' : 'Create Team'} 
+        }}
+        title={editingTeam ? 'Edit Team' : 'Create Team'}
         size="md"
       >
-        <DepartmentForm 
+        <DepartmentForm
           onClose={() => {
             setIsOpen(false);
             setEditingTeam(null);
-          }} 
+          }}
           onSuccess={handleFormSuccess}
           initialData={editingTeam}
         />
