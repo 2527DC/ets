@@ -13,22 +13,3 @@ import { API_CLIENT } from "../../../Api/API_Client";
         return rejectWithValue(error.message);
     }
 })
-
-
-export const fetchDepartments = async (page = 1, limit = 20) => {
-  let params = {};
-
-  params.skip = (page - 1) * limit;
-  params.limit = limit;
-
-  const { data } = await API_CLIENT.get('/departments/', { params });
-
-  return data.map(dept => ({
-    id: dept.department_id,
-    name: dept.department_name,
-    description: dept.description,
-    users: dept.employee_count,
-    active:dept.active_count,
-    inactive:dept.inactive_count,
-  }));
-};

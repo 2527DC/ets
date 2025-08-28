@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DynamicTable from "../components/DynamicTable";
-import ToolBar from "../ui/ToolBar";
+import ToolBar from "../components/ui/ToolBar";
 import { Edit, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { API_CLIENT } from "../Api/API_Client";

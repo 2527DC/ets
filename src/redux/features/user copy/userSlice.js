@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { logDebug } from '../../../utils/logger';
 
 // Initial state with typed structure
 const initialState = {
@@ -12,7 +11,7 @@ const initialState = {
     allIds: []
   },
   departmentEmployees: {}, // { depId: [employeeId, employeeId...] }
-  lastFetchedDepId: null
+  lastFetchedDepId: null // <-- add this
 };
 
 // Helper functions for common operations
@@ -41,32 +40,24 @@ const userSlice = createSlice({
         })) };
       }
     },
-    
-    // Set all departments (for filtering)
-    setAllDepartments: (state, action) => {
-      const departments = action.payload;
-      departments.forEach(dept => {
-        state.teams.byId[dept.id] = dept;
-        if (!state.teams.allIds.includes(dept.id)) {
-          state.teams.allIds.push(dept.id);
-        }
-      });
-    },
-    
     setLastFetchedDepId(state, action) {
       state.lastFetchedDepId = action.payload;
-    },
+    }
+,    
     
     // Add or update a single team
     upsertTeam(state, action) {
       const team = action.payload;
-      // const existingTeam = state.teams.byId[team.id];
-      state.teams.byId[team.id] = { ...team};
+      const existingTeam = state.teams.byId[team.id];
       
-      logDebug("Updated team:", state.teams.byId[team.id]);
+      state.teams.byId[team.id] = {
+        ...existingTeam,
+        ...team,
+        employeeIds: existingTeam?.employeeIds || team.employeeIds || []
+      };
+      
       if (!state.teams.allIds.includes(team.id)) {
         state.teams.allIds.push(team.id);
-        logDebug("Added new team ID:", team.id);
       }
     },
     
@@ -138,19 +129,19 @@ const userSlice = createSlice({
         });
       }
     },
-    
     setDepartmentEmployees(state, action) {
-      const { department_id, employees } = action.payload;
+      const { depId, employees } = action.payload;
+
       // Store each employee globally
       employees.forEach(emp => {
-        state.employees.byId[emp.employee_id] = emp;
-
-        if (!state.employees.allIds.includes(emp.employee_id)) {
-          state.employees.allIds.push(emp.employee_id); 
+        state.employees.byId[emp.id] = emp;
+        if (!state.employees.allIds.includes(emp.id)) {
+          state.employees.allIds.push(emp.id);
         }
       });
-      
-      state.departmentEmployees[department_id] = employees.map(emp => emp.employee_id);
+
+      // Store employee IDs for this department
+      state.departmentEmployees[depId] = employees.map(emp => emp.id);
     },
     
     // Move employee between teams
@@ -166,37 +157,18 @@ const userSlice = createSlice({
           !state.teams.byId[toTeamId].employeeIds.includes(employeeId)) {
         state.teams.byId[toTeamId].employeeIds.push(employeeId);
       }
-    },
-
-    setDepartments: (state, action) => {
-      const departments = action.payload; // array of depts
-    
-      state.teams.byId = {};
-      state.teams.allIds = [];
-    
-      departments.forEach((dept) => {
-        state.teams.byId[dept.id] = dept;
-        state.teams.allIds.push(dept.id);
-      });
-    },
-    
+    }
   }
 });
 
-// In your userSlice.js
-
 export const {
-  setDepartments,
   setTeams,
-  setAllDepartments, 
   upsertTeam,
   removeTeam,
   upsertEmployee,
   addEmployeeToTeam,
   removeEmployeeFromTeam,
-  moveEmployee,
-  setLastFetchedDepId,
-  setDepartmentEmployees
+  moveEmployee,  setLastFetchedDepId,setDepartmentEmployees
 } = userSlice.actions;
 
 export default userSlice.reducer;

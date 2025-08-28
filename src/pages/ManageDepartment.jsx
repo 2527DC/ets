@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserX } from 'lucide-react';
-import Modal from '../components/modal/Modal';
+import { Plus, UserPlus, UsersRound } from 'lucide-react';
+import Modal from '../components/modals/Modal';
 import DepartmentForm from '../components/teams/DepartmentForm';
+import DepartmentList from '../components/teams/DepartmentList';
 import { useDispatch, useSelector } from 'react-redux';
 import { API_CLIENT } from '../Api/API_Client';
 import {
@@ -10,216 +11,182 @@ import {
   upsertTeam,
   removeTeam
 } from '../redux/features/user/userSlice';
+import { logDebug, logError } from '../utils/logger';
+import { fetchDepartments } from '../redux/features/user/userTrunk';
+import ToolBar from '../components/ui/ToolBar';
+import SearchInput from '../components/ui/SearchInput';
 
 const ManageDepartment = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Pull teams from Redux slice
   const teamsById = useSelector((state) => state.user.teams.byId);
   const teamIds = useSelector((state) => state.user.teams.allIds);
   const teams = teamIds.map((id) => teamsById[id]);
-
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedTeams, setSelectedTeams] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [editingTeam, setEditingTeam] = useState(null);
+  const [viewActive, setViewActive] = useState(true);
+  const [departmentFilter, setDepartmentFilter] = useState(null);
 
-  // Fetch teams only if not already loaded
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle add button click
+  const handleAddClick = () => {
+    setEditingTeam(null);
+    setIsOpen(true);
+  };
+
+
+  // Fetch teams with pagination
   useEffect(() => {
     const fetchTeams = async () => {
+      setIsLoading(true);
       try {
-        const { data } = await API_CLIENT.get('/users/company-departments');
+        const data = await fetchDepartments(currentPage, itemsPerPage, searchTerm);
+        logDebug('Fetched teams:', data);
         dispatch(setTeams(data));
+        setTotalItems(data.length);
       } catch (error) {
-        console.error('Error fetching teams:', error);
+        logError('Error fetching teams:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (teamIds.length === 0) {
-      fetchTeams();
-    }
-  }, [dispatch, teamIds.length]);
+    fetchTeams();
+  }, [dispatch, currentPage, itemsPerPage, searchTerm]);
 
-  // Handle team selection
-  const handleSelectTeam = (teamId, isSelected) => {
-    setSelectedTeams((prev) =>
-      isSelected ? [...prev, teamId] : prev.filter((id) => id !== teamId)
+  // Handle department selection
+  const handleSelectDepartment = (departmentId, isSelected) => {
+    setSelectedDepartments((prev) =>
+      isSelected ? [...prev, departmentId] : prev.filter((id) => id !== departmentId)
     );
   };
 
-  const handleSelectAll = (e) => {
+  const handleSelectAllDepartments = (e) => {
     if (e.target.checked) {
-      setSelectedTeams(teamIds);
+      setSelectedDepartments(teamIds);
     } else {
-      setSelectedTeams([]);
+      setSelectedDepartments([]);
     }
   };
 
   const handleEdit = (team) => {
-    setEditingTeam(team);
+    // Transform team data back to the form's expected structure
+    const teamToEdit = {
+      ...team,
+      department_id: team.id,
+      department_name: team.name
+    };
+    setEditingTeam(teamToEdit);
     setIsOpen(true);
   };
 
   const handleDelete = async (teamId) => {
-    if (window.confirm('Are you sure you want to delete this team?')) {
+    if (window.confirm(`Are you sure you want to delete this department?`)) {
       try {
-        await API_CLIENT.delete(`/users/departments/${teamId}`);
+        await API_CLIENT.delete(`/departments/${teamId}`);
         dispatch(removeTeam({ teamId }));
-        setSelectedTeams((prev) => prev.filter((id) => id !== teamId));
+        setSelectedDepartments((prev) => prev.filter((id) => id !== teamId));
+        
+        // Refresh the current page if we're left with no items after deletion
+        if (teams.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
       } catch (error) {
-        console.error('Error deleting team:', error);
+        console.error('Error deleting department:', error);
       }
     }
   };
 
-  const handleDeleteSelected = async () => {
-    if (selectedTeams.length === 0) return;
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${selectedTeams.length} selected teams?`
-      )
-    ) {
-      try {
-        await Promise.all(
-          selectedTeams.map((teamId) =>
-            API_CLIENT.delete(`/users/departments/${teamId}`)
-          )
-        );
-
-        // Remove from store
-        selectedTeams.forEach((id) =>
-          dispatch(removeTeam({ teamId: id }))
-        );
-
-        setSelectedTeams([]);
-      } catch (error) {
-        console.error('Error deleting teams:', error);
-      }
-    }
+  const handleViewEmployees = (departmentId) => {
+    navigate(`/department/${departmentId}/employees`);
   };
 
   const handleFormSuccess = (teamData) => {
-    if (editingTeam) {
-      // Update existing team
-      dispatch(
-        upsertTeam({
-          ...teamData,
-          id: editingTeam.id,
-          employeeIds: editingTeam.employeeIds || []
-        })
-      );
-    } else {
-      // Add new team
-      dispatch(
-        upsertTeam({
-          ...teamData,
-          employeeIds: []
-        })
-      );
-    }
+    logDebug(" debug data based from submission " ,teamData)
+    // Transform the form data to match your Redux structure
+    // const transformedData = {
+    //   id: teamData.department_id,
+    //   name: teamData.department_name,
+    //   description: teamData.description,
+    // };
+
+    // if (editingTeam) {
+    //   // Update existing team
+    //   dispatch(upsertTeam(transformedData));
+    // } else {
+    //   // Add new team
+    //   dispatch(upsertTeam(transformedData));
+      
+    //   // If we're not on the first page, go to first page to see the new item
+    //   if (currentPage !== 1) {
+    //     setCurrentPage(1);
+    //   }
+    // }
     setEditingTeam(null);
     setIsOpen(false);
   };
 
+
   return (
-    <div className="p-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={() => {
-              setEditingTeam(null);
-              setIsOpen(true);
-            }}
-            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
-          >
-            <UserX size={16} /> Create Department
-          </button>
+    <div >
+      <ToolBar
+        onAddClick={handleAddClick}
+        addButtonLabel=" Department"
+        addButtonIcon={<UsersRound size={16} />}
+        className="p-4 bg-white border rounded shadow-sm mb-4"
+        searchBar={
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <SearchInput
+              placeholder="Search departments..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="flex-grow"
+            />
+            
+   
+          </div>
+        }
 
-          <button
-            onClick={() => navigate('/employee/create-employee')}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
-          >
-            <UserX size={16} /> Create Employee
-          </button>
+        rightElements={
+          <button className="flex items-center gap-2 px-2  p-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+      <UserPlus size={17} />
+      Employee
+    </button>
+          
+        }
+      
+      />
 
-          {selectedTeams.length > 0 && (
-            <button
-              onClick={handleDeleteSelected}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
-            >
-              Delete Selected ({selectedTeams.length})
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Teams Table */}
-      <div className="overflow-x-auto bg-white rounded shadow max-h-[500px] overflow-y-auto">
-        <table className="min-w-full table-auto text-sm">
-          <thead className="bg-gray-100 sticky top-0 z-10">
-            <tr>
-              <th className="px-3 py-2 text-left">
-                <input
-                  type="checkbox"
-                  checked={
-                    selectedTeams.length === teamIds.length &&
-                    teamIds.length > 0
-                  }
-                  onChange={handleSelectAll}
-                />
-              </th>
-              <th className="px-3 py-2 text-left">Name</th>
-              <th className="px-3 py-2 text-left">Description</th>
-              <th className="px-3 py-2 text-left">Employees</th>
-              <th className="px-3 py-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((team) => (
-              <tr key={team.id} className="border-b hover:bg-gray-50">
-                <td className="px-3 py-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedTeams.includes(team.id)}
-                    onChange={(e) =>
-                      handleSelectTeam(team.id, e.target.checked)
-                    }
-                  />
-                </td>
-                <td className="px-3 py-2">{team.name}</td>
-                <td className="px-3 py-2">{team.description || '-'}</td>
-                <td className="px-3 py-2">
-                  <button
-                    className="bg-green-100 text-green-800 px-2 py-0.5 rounded"
-                    onClick={() =>
-                      navigate(`/department/${team.id}/employees`)
-                    }
-                  >
-                    {team.users || 0}
-                  </button>
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex gap-3">
-                    <button
-                      className="text-blue-500 hover:underline"
-                      onClick={() => handleEdit(team)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="text-red-500 hover:underline"
-                      onClick={() => handleDelete(team.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Department List Component */}
+      <DepartmentList
+        departments={teams}
+        selectedDepartments={selectedDepartments}
+        isLoading={isLoading}
+        searchTerm={searchTerm}
+        onSelectDepartment={handleSelectDepartment}
+        onSelectAllDepartments={handleSelectAllDepartments}
+        onEditDepartment={handleEdit}
+        onDeleteDepartment={handleDelete}
+        onViewEmployees={handleViewEmployees}
+        currentPage={currentPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Modal */}
       <Modal
@@ -228,7 +195,7 @@ const ManageDepartment = () => {
           setIsOpen(false);
           setEditingTeam(null);
         }}
-        title={editingTeam ? 'Edit Team' : 'Create Team'}
+        title={editingTeam ? 'Edit Department' : 'Create Department'}
         size="md"
       >
         <DepartmentForm

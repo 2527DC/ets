@@ -1,6 +1,6 @@
 import React from 'react';
 import { Eye, Upload, FileText, X } from 'lucide-react';
-import FormField from '../../ui/FormFields';
+import FormField from '../ui/FormFields';
 
 
 const DocumentsTab = ({ formData = {}, errors = {}, onChange, onFileChange }) => {

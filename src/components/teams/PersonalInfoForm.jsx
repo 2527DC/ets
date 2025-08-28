@@ -70,10 +70,10 @@ logDebug('this is the teams', teams);
           </label>
           <input
             type="text"
-            name="userId"
-            value={formData.userId || ''}
+            name="employee_code"
+            value={formData.employee_code || ''}
             onChange={onChange}
-            className={getInputClasses(errors.userId)}
+            className={getInputClasses(errors.employee_code)}
             placeholder="Enter employee ID"
             disabled={isReadOnly}
           />
@@ -114,9 +114,9 @@ logDebug('this is the teams', teams);
             disabled={isReadOnly}
           >
             <option value="">Select gender</option>
-            <option value="MALE">MALE</option>
-            <option value="FEMALE">FEMALE</option>
-            <option value="OTHER">OTHER</option>
+            <option value="Male">MALE</option>
+            <option value="Female">FEMALE</option>
+            <option value="Others">OTHER</option>
           </select>
           {errors.gender && (
             <p className="mt-1 text-sm text-red-500">{errors.gender}</p>
@@ -126,20 +126,20 @@ logDebug('this is the teams', teams);
         {/* Mobile Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Mobile Number
+            Mobile Number  <span className="text-red-500">*</span>
           </label>
           <input
             type="tel"
-            name="phone"
-            value={formData.phone || ''}
+            name="mobile_number"
+            value={formData.mobile_number || ''}
             onChange={onChange}
             className={getInputClasses(false)}
             placeholder="Enter mobile number"
             disabled={isReadOnly}
 
           />
-           {errors.phone && (
-            <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+           {errors.mobile_number && (
+            <p className="mt-1 text-sm text-red-500">{errors.mobile_number}</p>
           )}
         </div>
 
@@ -168,14 +168,14 @@ logDebug('this is the teams', teams);
             Special Need
           </label>
           <select
-            name="specialNeed"
-            value={formData.specialNeed || 'None'}
+            name="special_need"
+            value={formData.special_need || 'none'}
             onChange={onChange}
             className={getSelectClasses(false)}
             disabled={isReadOnly}
           >
-            <option value="None">None</option>
-            <option value="PREGNENT">Pregnancy</option>
+            <option value="none">None</option>
+            <option value="pregnancy">Pregnancy</option>
           </select>
         </div>
 
@@ -221,10 +221,10 @@ logDebug('this is the teams', teams);
             </p>
           ) : (
             <select
-              name="departmentId"
-              value={formData.departmentId || ''}
+              name="department_id"
+              value={formData.department_id || ''}
               onChange={onChange}
-              className={getSelectClasses(errors.departmentId)}
+              className={getSelectClasses(errors.department_id)}
               disabled={isReadOnly}
             >
               <option value="">Select Department</option>
@@ -235,8 +235,8 @@ logDebug('this is the teams', teams);
               ))}
             </select>
           )}
-          {errors.departmentId && (
-            <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+          {errors.department_id && (
+            <p className="mt-1 text-sm text-red-500">{errors.department_id}</p>
           )}
         </div>
       </div>

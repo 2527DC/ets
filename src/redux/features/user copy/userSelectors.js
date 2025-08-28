@@ -3,7 +3,6 @@ import { createSelector } from '@reduxjs/toolkit';
 // Basic selectors
 const selectTeamsState = state => state.user.teams;
 const selectEmployeesState = state => state.user.employees;
-const selectDepartmentsState = state => state.user.departments;
 
 // Team selectors
 export const selectAllTeamIds = createSelector(
@@ -90,5 +89,3 @@ export const selectTotalTeamCount = createSelector(
   selectAllTeamIds,
   ids => ids.length
 );
-
-

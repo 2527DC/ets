@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 
 export default defineConfig({
@@ -8,5 +9,14 @@ export default defineConfig({
     host: true, // true binds to all available IPs, useful for testing on LAN
     port: 5174,
   },
+  resolve:{
+    alias:{
+      '@': resolve(__dirname, './src'),
+      '@features': resolve(__dirname, './src/redux/features'),
+      '@logger': resolve(__dirname, './src/utils/logger'),
+
+     
+    }
+  }
 });
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import {  Modal } from '../SmallComponents';
 import DynamicTable from '../DynamicTable';
-import ToolBar from '../../ui/ToolBar';
+import ToolBar from '../ui/ToolBar';
 import usePermission from '../../hooks/userModulePermission';
 import PermissionDenied from '../PermissionDenied';
 import { API_CLIENT } from '../../Api/API_Client';

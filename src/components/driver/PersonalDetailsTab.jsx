@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Pencil } from 'lucide-react';
-import FormField from '../../ui/FormFields';
+import FormField from '../ui/FormFields';
 
 const PersonalDetailsTabUI = ({
   formData = {

@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { API_CLIENT } from '../../Api/API_Client';
+import {  logError } from '../../utils/logger';
+import { fetchDepartments } from '../../redux/features/user/userTrunk';
+import { setDepartments } from '../../redux/features/user/userSlice';
+import { useDispatch } from 'react-redux';
 
 const DepartmentForm = ({ onClose, onSuccess, initialData = null }) => {
   const isEditMode = Boolean(initialData);
-  const [formData, setFormData] = useState({ name: '', description: '' });
-
+  const [formData, setFormData] = useState({ department_name: '', description: '' });
+const dispatch = useDispatch();
   useEffect(() => {
     if (isEditMode) {
       setFormData({
-        name: initialData.name || '',
+        department_name: initialData.department_name || '',
         description: initialData.description || ''
       });
     }
@@ -26,25 +30,24 @@ const DepartmentForm = ({ onClose, onSuccess, initialData = null }) => {
     e.preventDefault();
     try {
       const endpoint = isEditMode
-        ? `/users/departments/${initialData.id}`
-        : '/users/create-department';
-
+        ? `/departments/${initialData.id}`
+        : '/departments/';
+  
       const method = isEditMode ? 'put' : 'post';
-
       const { data } = await API_CLIENT[method](endpoint, formData);
-
+  
       toast.success(isEditMode ? 'Team updated successfully' : 'Team created successfully');
-
-      // Notify parent so it can update Redux
-      onSuccess(data.team);
-
+  
+      // Re-fetch full list of departments
+      const departments = await fetchDepartments();
+      dispatch(setDepartments(departments)); // <-- you need a reducer like this
+  
     } catch (error) {
-      toast.error(
-        (isEditMode ? 'Failed to update team ' : 'Failed to create team ') +
-        (error.response?.data?.message || '')
-      );
+      logError("this is the error", error);
+      toast.error(error.response?.data?.detail || '');
     }
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,8 +56,8 @@ const DepartmentForm = ({ onClose, onSuccess, initialData = null }) => {
         <label className="block text-sm font-medium text-gray-700">Team Name</label>
         <input
           type="text"
-          name="name"
-          value={formData.name}
+          name="department_name"
+          value={formData.department_name}
           onChange={handleChange}
           required
           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2"

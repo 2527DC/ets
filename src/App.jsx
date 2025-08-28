@@ -14,7 +14,7 @@ import ManageEmployees from "./pages/ManageEmployees";
 import VendorManagement from "./pages/VendorManagement";
 import VehicleManagement from "./pages/VehicleManagement";
 import ShiftManagement from "./pages/ShiftManagement";
-import NoInternetModal from "./components/modal/NoInternetModal";
+import NoInternetModal from "./components/modals/NoInternetModal";
 import DriverManagement from "./pages/DriverManagement";
 import Practice from "./pages/Practice";
 function App() {

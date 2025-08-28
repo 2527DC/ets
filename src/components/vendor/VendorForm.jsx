@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import FormField from "../../ui/FormFields";
-import Modal from "../modal/Modal";
+import FormField from "../ui/FormFields";
+import Modal from "../modals/Modal";
 import { validateVendorForm } from "./validators";
 
 const VendorForm = ({ isOpen, onClose, onSave, initialData }) => {

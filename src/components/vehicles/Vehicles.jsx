@@ -8,7 +8,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Modal } from "../SmallComponents";
-import ToolBar from "../../ui/ToolBar";
+import ToolBar from "../ui/ToolBar";
 import VehicleForm from "./VehicleForm";
 
 const VehicleList = ({
