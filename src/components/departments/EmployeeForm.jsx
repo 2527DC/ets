@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { logDebug, logError } from '../../utils/logger';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAllTeams } from '../../redux/features/user/userSelectors';
-import { setTeams } from '../../redux/features/user/userSlice';
+import { setDepartments } from '../../redux/features/user/userSlice';
 import { API_CLIENT } from '../../Api/API_Client';
 import { useNavigate } from 'react-router-dom';
 import { fetchDepartments } from '../../redux/features/user/userTrunk';
@@ -86,7 +86,7 @@ const EmployeeForm = ({ mode = 'create' }) => {
     const fetchTeams = async () => {
       try {
         const response = await fetchDepartments();
-        dispatch(setTeams(response));
+        dispatch(setDepartments(response));
       } catch (error) {
         logError('Error fetching teams:', error);
         toast.error('Failed to load departments');

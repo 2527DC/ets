@@ -4,9 +4,6 @@ import Cookies from "js-cookie";
 
 const ProtectedRouteAuth = ({ redirectPath = "/" }) => {
   const token = Cookies.get("auth_token");
-
-
-  console.log(" this is the auth token ", token);
   
   if (!token) return <Navigate to={redirectPath} replace />;
 

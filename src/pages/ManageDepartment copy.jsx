@@ -9,9 +9,9 @@ import { setDepartments, removeDepartment } from '../redux/features/user/userSli
 import { logDebug, logError } from '../utils/logger';
 import { fetchDepartments } from '../redux/features/user/userTrunk';
 import ToolBar from '../components/ui/ToolBar';
-import EnhancedSearchInput from '../components/departments/EnhancedSearchInput.jsx'; // New component
+import SearchInput from '../components/ui/SearchInput';
 import DepartmentForm from '../components/departments/DepartmentForm';
-import AuditLogModal from '../components/departments/AuditLogModal.jsx';
+import AuditLogModal from '../components/departments/AuditLogModal.jsx'; // New component for audit logs
 
 const ManageDepartment = () => {
   const navigate = useNavigate();
@@ -29,9 +29,9 @@ const ManageDepartment = () => {
   const departments = departmentIds.map((id) => departmentsById[id]);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false);
-  const [auditLogs, setAuditLogs] = useState([]);
-  const [isLoadingAuditLogs, setIsLoadingAuditLogs] = useState(false);
+  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false); // New state for audit log modal
+  const [auditLogs, setAuditLogs] = useState([]); // State for audit logs
+  const [isLoadingAuditLogs, setIsLoadingAuditLogs] = useState(false); // Loading state for audit logs
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [editingDepartment, setEditingDepartment] = useState(null);
 
@@ -39,42 +39,10 @@ const ManageDepartment = () => {
     setSearchTerm(value);
   };
 
-  const handleSearchSelect = (item, type) => {
-    if (type === 'department') {
-      // Navigate to department details or highlight the department
-      console.log('Selected department:', item);
-      // You could implement department highlighting or navigation here
-    } else {
-      // Navigate to employee details
-      console.log('Selected employee:', item);
-      navigate(`/employee/${item.id}`);
-    }
-  };
-
   const handleAddClick = () => {
     setEditingDepartment(null);
     setIsOpen(true);
   };
-
-    // Function to fetch audit logs
-    const fetchAuditLogs = async () => {
-      setIsLoadingAuditLogs(true);
-      try {
-        const response = await API_CLIENT.get('/api/audit/departmentsLogs');
-        setAuditLogs(response.data.data || response.data); // Handle both structured and raw responses
-      } catch (error) {
-        logError('Error fetching audit logs:', error);
-        alert('Failed to fetch audit logs');
-      } finally {
-        setIsLoadingAuditLogs(false);
-      }
-    };
-
-    // Function to handle history icon click
-    const handleHistoryClick = () => {
-      setIsAuditLogOpen(true);
-      fetchAuditLogs();
-    };
 
   // Fetch departments with pagination
   useEffect(() => {
@@ -100,11 +68,32 @@ const ManageDepartment = () => {
     fetchDeps();
   }, [dispatch, currentPage, itemsPerPage, searchTerm, departmentIds]);
 
+  // Function to fetch audit logs
+  const fetchAuditLogs = async () => {
+    setIsLoadingAuditLogs(true);
+    try {
+      const response = await API_CLIENT.get('/api/audit/departmentsLogs');
+      setAuditLogs(response.data.data || response.data); // Handle both structured and raw responses
+    } catch (error) {
+      logError('Error fetching audit logs:', error);
+      alert('Failed to fetch audit logs');
+    } finally {
+      setIsLoadingAuditLogs(false);
+    }
+  };
+
+  // Function to handle history icon click
+  const handleHistoryClick = () => {
+    setIsAuditLogOpen(true);
+    fetchAuditLogs();
+  };
+
   const handleSelectDepartment = (departmentId, isSelected) => {
     setSelectedDepartments((prev) =>
       isSelected ? [...prev, departmentId] : prev.filter((id) => id !== departmentId)
     );
   };
+
   const handleSelectAllDepartments = (e) => {
     setSelectedDepartments(e.target.checked ? departmentIds : []);
   };
@@ -143,7 +132,6 @@ const ManageDepartment = () => {
     setEditingDepartment(null);
     setIsOpen(false);
   };
-  // Rest of your component remains the same...
 
   return (
     <div>
@@ -154,15 +142,17 @@ const ManageDepartment = () => {
         className="p-4 bg-white border rounded shadow-sm mb-4"
         searchBar={
           <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <EnhancedSearchInput
-              onSearchChange={handleSearchChange}
-              onSelect={handleSearchSelect}
-              placeholder="Search departments or employees..."
+            <SearchInput
+              placeholder="Search departments..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="flex-grow"
             />
           </div>
         }
         rightElements={
           <div className="flex gap-2">
+            {/* History Button */}
             <button 
               onClick={handleHistoryClick}
               className="flex items-center gap-2 px-3 py-1 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition"
@@ -179,6 +169,7 @@ const ManageDepartment = () => {
           </div>
         }
       />
+
       <DepartmentList
         departments={departments}
         selectedDepartments={selectedDepartments}
@@ -227,7 +218,7 @@ const ManageDepartment = () => {
     isLoading={isLoadingAuditLogs}
   />
 </Modal>
-      {/* Rest of your component remains the same... */}
+
     </div>
   );
 };

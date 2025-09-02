@@ -3,7 +3,7 @@ import { LogOut, ChevronDown, Pin, PinOff } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { generateMenuItems } from "./MenuItems";
 import { logDebug, logError } from "../../utils/logger";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/features/auth/authSlice";
 
 const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
@@ -12,7 +12,8 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
   const [openDropdown, setOpenDropdown] = useState({});
   const [isMobile, setIsMobile] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
-
+  const {user}=useSelector((state)=>state.auth)
+  logDebug(" this is the  user details in  sidebar " ,user)
   useEffect(() => {
     logDebug("Sidebar mounted or location changed:", location.pathname);
     // Get permissions from storage or Redux store
@@ -82,7 +83,7 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         {isOpen && (
           <>
-            <h2 className="text-xl font-bold">COMPANNY NAME</h2>
+            <h2 className="text-xl font-bold">{user?.companyName || "Company Name"}</h2>
             {!isMobile && (
               <button
                 onClick={togglePin}

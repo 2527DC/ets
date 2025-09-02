@@ -29,7 +29,7 @@ const authSlice = createSlice({
       // Reset state
       Object.assign(state, initialState);
     },
-    setCredentials: (state, action) => {
+    setAuthCredentials: (state, action) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
@@ -89,7 +89,7 @@ const authSlice = createSlice({
 export const { 
   resetAuthState, 
   logout, 
-  setCredentials,
+  setAuthCredentials,
   loadFromStorage 
 } = authSlice.actions;
 

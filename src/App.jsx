@@ -5,7 +5,7 @@ import { logDebug } from "./utils/logger";
 import { Login } from "./pages/Login";
 import { PublicRoute } from "./middleware/PublicRoute";
 import Layout from "./components/layout/layout";
-import EmployeeForm from "./components/teams/EmployeeForm";
+import EmployeeForm from "./components/departments/EmployeeForm";
 import ProtectedRouteAuth from "./middleware/ProtectedRouteAuth";
 import ManageDepartment from "./pages/ManageDepartment";
 import { ToastContainer } from "react-toastify";
@@ -19,7 +19,6 @@ import DriverManagement from "./pages/DriverManagement";
 import Practice from "./pages/Practice";
 function App() {
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
-  const [isServerDown, setIsServerDown] = useState(false);
   const [initialLoadFailed, setInitialLoadFailed] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -38,25 +37,7 @@ function App() {
   }, []);
 
   // Set up Axios response interceptor
-  useEffect(() => {
-    const interceptor = API_CLIENT.interceptors.response.use(
-      response => response,
-      error => {
-        if (
-          error.message === "Network Error" ||
-          error.code === "ERR_NETWORK" ||
-          error.response?.status === 500
-        ) {
-          setIsServerDown(true);
-        }
-        return Promise.reject(error);
-      }
-    );
 
-    return () => {
-      API_CLIENT.interceptors.response.eject(interceptor);
-    };
-  }, []);
 
   const fetchUserPermissions = async () => {
     try {
@@ -64,7 +45,6 @@ function App() {
       const response = await API_CLIENT.get("/role-permissions/permissions");
       const data = response.data;
       sessionStorage.setItem("userPermissions", JSON.stringify(data));
-      setIsServerDown(false); // Reset server down status if successful
     } catch (error) {
       console.error("Permission fetch error:", error);
       if (
@@ -72,7 +52,6 @@ function App() {
         error.code === "ERR_NETWORK" ||
         error.response?.status === 500
       ) {
-        setIsServerDown(true);
         setInitialLoadFailed(true);
       }
     } finally {
@@ -90,7 +69,6 @@ function App() {
   }, []);
 
   const handleRetry = async () => {
-    setIsServerDown(false);
     setInitialLoadFailed(false);
     window.location.reload();
     
@@ -98,12 +76,11 @@ function App() {
     try {
       await fetchUserPermissions();
     } catch (error) {
-      setIsServerDown(true);
     }
   };
 
   // Show connection error if either internet is down or server is down
-  const showConnectionError = !isOnline || isServerDown;
+  const showConnectionError = !isOnline 
 
   if (initialLoadFailed) {
     return (

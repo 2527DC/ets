@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { API_CLIENT } from "../../../Api/API_Client";
+import endpoint from "../../../Api/Endpoints";
 
  export const createEmployee=createAsyncThunk("user/createEmployee", async (employeeData, { rejectWithValue }) => {
     try {
@@ -21,14 +22,7 @@ export const fetchDepartments = async (page = 1, limit = 20) => {
   params.skip = (page - 1) * limit;
   params.limit = limit;
 
-  const { data } = await API_CLIENT.get('/departments/', { params });
+  const { data } = await API_CLIENT.get(endpoint.getDepartments, { params });
 
-  return data.map(dept => ({
-    id: dept.department_id,
-    name: dept.department_name,
-    description: dept.description,
-    users: dept.employee_count,
-    active:dept.active_count,
-    inactive:dept.inactive_count,
-  }));
+  return data
 };

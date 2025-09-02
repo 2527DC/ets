@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Lock, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { resetAuthState } from "../redux/features/auth/authSlice";
+import { resetAuthState, setAuthCredentials } from "../redux/features/auth/authSlice";
 // import { loginUser } from "../redux/features/auth/authThunk";  // Correct import
 import Cookies from "js-cookie";
 import { loginUser } from "../redux/features/auth/authTrunk";
@@ -49,7 +49,7 @@ export const Login = () => {
 
     try {
       const result = await dispatch(loginUser(credentials)).unwrap();
-      
+      dispatch(setAuthCredentials(result));
       // Optional: Set additional cookies if needed
       Cookies.set('user_email', result.user.email, { 
         secure: process.env.NODE_ENV === 'production',

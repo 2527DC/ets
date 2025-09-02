@@ -7,7 +7,7 @@ import EmployeeList from '../teams/EmployeeList';
 import { useDispatch, useSelector } from 'react-redux';
 import { API_CLIENT } from '../../Api/API_Client';
 import {
-  setTeams,
+  setDepartments,
   upsertTeam,
   removeTeam,
   setDepartmentEmployees,
@@ -72,7 +72,7 @@ const TeamManagement = () => {
       setIsLoading(true);
       try {
         const data = await fetchDepartments(currentPage, itemsPerPage);
-        dispatch(setTeams(data));
+        dispatch(setDepartments(data));
         setTotalItems(data.length);
       } catch (error) {
         logError('Error fetching teams:', error);
