@@ -17,6 +17,8 @@ import ShiftManagement from "./pages/ShiftManagement";
 import NoInternetModal from "./components/modals/NoInternetModal";
 import DriverManagement from "./pages/DriverManagement";
 import Practice from "./pages/Practice";
+import SuperAdminLayout from "./superadmin/SuperAdminLayout";
+import VendorLayout from "./vendor/VendorLayout";
 function App() {
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [initialLoadFailed, setInitialLoadFailed] = useState(false);
@@ -82,19 +84,19 @@ function App() {
   // Show connection error if either internet is down or server is down
   const showConnectionError = !isOnline 
 
-  if (initialLoadFailed) {
-    return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center">
-        <NoInternetModal 
-          onRetry={handleRetry} 
-          showCloseButton={false}
-          message={!isOnline 
-            ? "No internet connection. Please check your network." 
-            : "Unable to connect to the server. Please try again."}
-        />
-      </div>
-    );
-  }
+  // if (initialLoadFailed) {
+  //   return (
+  //     <div className="fixed inset-0 bg-white flex items-center justify-center">
+  //       <NoInternetModal 
+  //         onRetry={handleRetry} 
+  //         showCloseButton={false}
+  //         message={!isOnline 
+  //           ? "No internet connection. Please check your network." 
+  //           : "Unable to connect to the server. Please try again."}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (!permissionsLoaded) {
     return (
@@ -107,19 +109,44 @@ function App() {
   return (
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
-      {showConnectionError && (
-        <NoInternetModal 
-          onRetry={handleRetry}
-          message={!isOnline 
-            ? "You're offline. Please check your internet connection." 
-            : "Connection to server lost. Trying to reconnect..."}
-        />
-      )}
+
 
       <Routes>
       <Route path="/practice" element={<Practice/>} />
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
-       
+        <Route path="/vendor" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/superadmin/login" element={<PublicRoute><Login /></PublicRoute>} />
+     
+
+
+  {/* ================= SUPER ADMIN ROUTES ================= */}
+        <Route element={<ProtectedRouteAuth />}>
+          <Route path="/superadmin" element={<SuperAdminLayout />}>
+            <Route index element={<h1>SuperAdmin Dashboard</h1>} />
+            <Route path="manage-departments" element={<ManageDepartment />} />
+            <Route path="manage-drivers" element={<DriverManagement />} />
+            <Route path="manage-vendors" element={<VendorManagement />} />
+            <Route path="manage-vehicles" element={<VehicleManagement />} />
+            <Route path="manage-shifts" element={<ShiftManagement />} />
+            <Route path="audit-report" element={<h1>Audit Report Page</h1>} />
+          </Route>
+        </Route>
+
+
+          {/* ================= VENDOR ROUTES ================= */}
+
+        <Route element={<ProtectedRouteAuth />}>
+          <Route path="/vendor" element={<VendorLayout />}>
+            <Route index element={<h1>Vendor Dashboard</h1>} />
+            <Route path="employees" element={<ManageEmployees />} />
+            <Route path="employees/create" element={<EmployeeForm />} />
+            <Route path="employees/:userId/edit" element={<EmployeeForm mode="edit" />} />
+            <Route path="employees/:userId/view" element={<EmployeeForm mode="view" />} />
+            <Route path="reports" element={<h1>Vendor Reports</h1>} />
+          </Route>
+        </Route>
+
+
         <Route element={<ProtectedRouteAuth />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<h1>This is the dashboard</h1>} />

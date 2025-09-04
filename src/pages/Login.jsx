@@ -55,7 +55,8 @@ export const Login = () => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
-
+ console.log(" this is the result of login" ,result);
+ 
       // Navigate to intended page or dashboard
       navigate(location.state?.from || '/dashboard', { replace: true });
 
