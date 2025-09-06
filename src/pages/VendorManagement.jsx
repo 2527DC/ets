@@ -5,7 +5,8 @@ import { Edit, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { API_CLIENT } from "../Api/API_Client";
 import usePermission from "../hooks/userModulePermission";
-import VendorForm from "../components/VendorPannel/VendorForm";
+import VendorForm from "../components/vendor/VendorForm";
+// import VendorForm from "../components/VendorPannel/VendorForm";
 
 const PermissionDenied = () => (
   <div className="flex flex-col items-center justify-center h-64 text-center">

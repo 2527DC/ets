@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Lock, User } from "lucide-react";
+import { Lock, Shield, Truck, User, Users } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { resetAuthState, setAuthCredentials } from "../redux/features/auth/authSlice";
-// import { loginUser } from "../redux/features/auth/authThunk";  // Correct import
 import Cookies from "js-cookie";
 import { loginUser } from "../redux/features/auth/authTrunk";
+import endpoint from "../Api/Endpoints";
 
 export const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -19,15 +19,28 @@ export const Login = () => {
     error, 
     loading: isLoading, 
     isAuthenticated 
-  } = useSelector((state) => state.auth);
+  } = useSelector((state) => state.auth); 
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const getDashboardPath = () => {
+    const path = location.pathname.toLowerCase();
+  
+    if (path.includes('superadmin')) {
+      return '/superadmin/dashboard'; 
+    } else if (path.includes('vendor')) {
+      return '/vendor/dashboard';
+    }
+  
+    return '/dashboard'; // Default for company login
+  };
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(location.state?.from || '/dashboard');
+      const fromPath = location.state?.from || getDashboardPath();
+      navigate(fromPath, { replace: true });
     }
   }, [isAuthenticated, navigate, location.state]);
 
@@ -47,18 +60,31 @@ export const Login = () => {
       return;
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(credentials.email)) {
+      setValidationError("Please enter a valid email address.");
+      return;
+    }
+
     try {
-      const result = await dispatch(loginUser(credentials)).unwrap();
+      const result = await dispatch(loginUser({
+        formData: credentials,
+        endpoint: getLoginEndpoint()
+      })).unwrap();
+      
       dispatch(setAuthCredentials(result));
+      
       // Optional: Set additional cookies if needed
       Cookies.set('user_email', result.user.email, { 
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
- console.log(" this is the result of login" ,result);
- 
-      // Navigate to intended page or dashboard
-      navigate(location.state?.from || '/dashboard', { replace: true });
+      
+      console.log("Login successful", result);
+      
+      // Navigate to appropriate dashboard
+      navigate(getDashboardPath(), { replace: true });
 
     } catch (err) {
       console.error('Login error:', err);
@@ -66,12 +92,58 @@ export const Login = () => {
     }
   };
 
+  const getLoginTitle = () => {
+    const path = location.pathname.toLowerCase();
+    if (path === '/' || path === '') {
+      return {
+        title: "Company Login",
+        subtitle: "Access your company dashboard",
+        icon: <Users className="w-8 h-8 text-blue-600" />
+      };
+    } else if (path.includes('/superadmin')) {
+      return {
+        title: "Superadmin",
+        subtitle: "System administration access",
+        icon: <Shield className="w-8 h-8 text-red-600" />
+      };
+    } else if (path.includes('/vendor')) {
+      return {
+        title: "Vendor Login",
+        subtitle: "Vendor portal access",
+        icon: <Truck className="w-8 h-8 text-green-600" />
+      };
+    } else {
+      return {
+        title: "Login",
+        subtitle: "Welcome back",
+        icon: <User className="w-8 h-8 text-gray-600" />
+      };
+    }
+  };
+
+  const getLoginEndpoint = () => {
+    const path = location.pathname.toLowerCase();
+    if (path === '/' || path === '') {
+      return endpoint.login; 
+    } else if (path.includes('/superadmin')) {
+      return endpoint.superAdminLogin;
+    } else if (path.includes('/vendor')) {
+      return endpoint.vendorLogin;
+    }
+    return endpoint.login; // Default endpoint
+  };
+
+  const { title, subtitle, icon } = getLoginTitle();
+
   return (
     <div className="min-h-screen bg-gradient-to-tr from-blue-50 to-blue-200 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-lg">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-blue-700"> Login</h2>
-          <p className="text-gray-500 mt-1">Enter your credentials to continue</p>
+          <div className="flex justify-center mb-2">
+            {icon}
+          </div>
+          <h2 className="text-3xl font-bold text-blue-700">{title}</h2>
+          <p className="text-gray-500 mt-1">{subtitle}</p>
         </div>
 
         {/* Error Messages */}

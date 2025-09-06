@@ -16,14 +16,13 @@ import {
   Building2,
   UserPlus,
   Plus,
-  Edit,
   Clock,
   CheckCircle,
-  Pending,
   Car,
   UserCheck,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  PersonStanding
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -120,7 +119,7 @@ const vendorMenuItems = [
       {
         name: "Pending Bookings",
         path: "/vendor/bookings/pending",
-        icon: Pending
+        icon: PersonStanding
       },
       {
         name: "Confirmed Bookings",
@@ -284,25 +283,7 @@ const VendorSidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
         )}
       </div>
 
-      {/* Quick Stats - Only show when expanded */}
-      {isOpen && (
-        <div className="p-4 border-b border-indigo-800">
-          <div className="grid grid-cols-1 gap-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-indigo-300">Vehicles:</span>
-              <span className="text-white font-semibold">{vendorData.totalVehicles}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-indigo-300">Drivers:</span>
-              <span className="text-white font-semibold">{vendorData.activeDrivers}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-indigo-300">Today's Trips:</span>
-              <span className="text-white font-semibold">{vendorData.todayTrips}</span>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -369,16 +350,7 @@ const VendorSidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
 
       {/* User Info & Logout */}
       <div className="p-4 border-t border-indigo-800">
-        {isOpen && (
-          <div className="mb-3 text-xs text-indigo-300">
-            <div className="flex items-center space-x-2 mb-1">
-              <span>📧 {vendorData.email}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span>📞 {vendorData.phone}</span>
-            </div>
-          </div>
-        )}
+        
         <button
           onClick={handleLogout}
           className="flex items-center justify-center w-full px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"

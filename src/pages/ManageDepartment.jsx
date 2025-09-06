@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, UsersRound, History } from 'lucide-react';
-import Modal from '../components/modals/Modal';
-import DepartmentList from '../components/departments/DepartmentList';
+import Modal from '../components/modals/Modal.jsx';
+import DepartmentList from '../components/departments/DepartmentList.jsx';
 import { useDispatch, useSelector } from 'react-redux';
-import { API_CLIENT } from '../Api/API_Client';
-import { setDepartments, removeDepartment } from '../redux/features/user/userSlice';
-import { logDebug, logError } from '../utils/logger';
-import { fetchDepartments } from '../redux/features/user/userTrunk';
-import ToolBar from '../components/ui/ToolBar';
+import { API_CLIENT } from '../Api/API_Client.js';
+import { setDepartments, removeDepartment } from '../redux/features/user/userSlice.js';
+import { logDebug, logError } from '../utils/logger.js';
+import { fetchDepartments } from '../redux/features/user/userTrunk.js';
+import ToolBar from '../components/ui/ToolBar.jsx';
 import EnhancedSearchInput from '../components/departments/EnhancedSearchInput.jsx'; // New component
-import DepartmentForm from '../components/departments/DepartmentForm';
+import DepartmentForm from '../components/departments/DepartmentForm.jsx';
 import AuditLogModal from '../components/departments/AuditLogModal.jsx';
 
 const ManageDepartment = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); 
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);

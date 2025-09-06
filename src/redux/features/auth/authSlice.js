@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { loginUser } from "./authTrunk";
+import { logDebug } from "../../../utils/logger";
 
 const initialState = {
   user: null,
@@ -77,7 +78,7 @@ const authSlice = createSlice({
           errors: action.payload?.errors || null,
           timestamp: new Date().toISOString()
         };
-        
+        logDebug(" This is the error " , action.payload?.errors)
         // Clear any partial auth data
         Cookies.remove('auth_token');
         sessionStorage.removeItem('userPermissions');

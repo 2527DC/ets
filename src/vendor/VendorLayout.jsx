@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
-import VendorSidebar from "./VendorSidebar";
+// import VendorSidebar from "./VendorSidebar";
 import VendorHeader from "./VendorHeader";
 import { useLocation } from "react-router-dom";
+import VendorSideBar from "./VendorSideBar";
 
 // Static title mapping for vendor routes
 const vendorPathTitleMap = {
@@ -77,7 +78,7 @@ const VendorLayout = () => {
         mounted ? "transition-opacity duration-500 opacity-100" : "opacity-0"
       }`}
     >
-      <VendorSidebar
+      <VendorSideBar
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         isPinned={isPinned}
