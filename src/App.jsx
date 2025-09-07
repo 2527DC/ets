@@ -12,44 +12,25 @@ import ManageEmployees from "./pages/ManageEmployees";
 import VendorManagement from "./pages/VendorManagement";
 import VehicleManagement from "./pages/VehicleManagement";
 import ShiftManagement from "./pages/ShiftManagement";
-import NoInternetModal from "./components/modals/NoInternetModal";
 import DriverManagement from "./pages/DriverManagement";
 import Practice from "./pages/Practice";
 import SuperAdminLayout from "./superadmin/SuperAdminLayout";
 import VendorLayout from "./vendor/VendorLayout";
+import { useDispatch } from "react-redux";
+import { initializeAuth } from "./redux/features/auth/authSlice";
 
 function App() {
-  const [permissionsLoaded, setPermissionsLoaded] = useState(false);
-  const [initialLoadFailed, setInitialLoadFailed] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Monitor network status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const userPermissions = sessionStorage.getItem("userPermissions");
-    if (!userPermissions) {
-      // fetchUserPermissions();
-    } else {
-      setPermissionsLoaded(true);
-    }
-  }, []);
+    dispatch(initializeAuth());
+  }, [dispatch]);
 
-  const handleRetry = async () => {
-    setInitialLoadFailed(false);
-    window.location.reload();
-  };
+
+
+
 
   return (
     <BrowserRouter>
@@ -95,6 +76,7 @@ function App() {
           path="/superadmin/*" 
           element={ 
             <ProtectedRouteAuth 
+            type="MASTER_ADMIN"
               redirectPath="/superadmin" 
               authRedirectPath="/superadmin/dashboard" 
             />
@@ -116,6 +98,7 @@ function App() {
           path="/vendor/*" 
           element={
             <ProtectedRouteAuth 
+            type="Vendor"
               redirectPath="/vendor" 
               authRedirectPath="/vendor/dashboard" 
             />
@@ -135,6 +118,7 @@ function App() {
         <Route 
           element={
             <ProtectedRouteAuth 
+            type="COMPANY"
               redirectPath="/" 
               authRedirectPath="/dashboard" 
             />

@@ -13,13 +13,13 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const {user}=useSelector((state)=>state.auth)
-  logDebug(" this is the  user details in  sidebar " ,user)
   useEffect(() => {
     logDebug("Sidebar mounted or location changed:", location.pathname);
     // Get permissions from storage or Redux store
     const permissions = JSON.parse(sessionStorage.getItem('userPermissions'));
-    if (permissions.allowedModules) {
-      setMenuItems(generateMenuItems(permissions.allowedModules));
+    logDebug(" this is the permissions in the session" ,permissions)
+    if (permissions) {
+      setMenuItems(generateMenuItems(permissions));
     }
   }, [location.pathname]);
 
