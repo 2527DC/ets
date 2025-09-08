@@ -18,6 +18,8 @@ import SuperAdminLayout from "./superadmin/SuperAdminLayout";
 import VendorLayout from "./vendor/VendorLayout";
 import { useDispatch } from "react-redux";
 import { initializeAuth } from "./redux/features/auth/authSlice";
+import CompanyManagement from "./pages/CompanyManagement";
+import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
 
 function App() {
 
@@ -83,13 +85,10 @@ function App() {
           }
         >
           <Route element={<SuperAdminLayout />}>
-            <Route path="dashboard" element={<h1>SuperAdmin Dashboard</h1>} />
-            <Route path="manage-departments" element={<ManageDepartment />} />
-            <Route path="manage-drivers" element={<DriverManagement />} />
-            <Route path="manage-vendors" element={<VendorManagement />} />
-            <Route path="manage-vehicles" element={<VehicleManagement />} />
-            <Route path="manage-shifts" element={<ShiftManagement />} />
-            <Route path="audit-report" element={<h1>Audit Report Page</h1>} />
+            <Route path="dashboard" element={<SuperAdminDashboard/>} />
+            <Route path="manage-companies" element={ <CompanyManagement />} />
+            <Route path="manage-vendors" element={ <VendorManagement/>} />
+         
           </Route>
         </Route>
 
