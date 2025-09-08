@@ -1,132 +1,107 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, UsersRound, History } from 'lucide-react';
-import Modal from '../components/modals/Modal.jsx';
-import DepartmentList from '../components/departments/DepartmentList.jsx';
+import { Plus, UserPlus, UsersRound } from 'lucide-react';
+import Modal from '../components/modals/Modal';
+import DepartmentForm from '../components/departments/DepartmentForm';
+import DepartmentList from '../components/departments/DepartmentList';
 import { useDispatch, useSelector } from 'react-redux';
-import { API_CLIENT } from '../Api/API_Client.js';
-import { setDepartments, removeDepartment } from '../redux/features/user/userSlice.js';
-import { logDebug, logError } from '../utils/logger.js';
-import { fetchDepartments } from '../redux/features/user/userTrunk.js';
-import ToolBar from '../components/ui/ToolBar.jsx';
-import EnhancedSearchInput from '../components/departments/EnhancedSearchInput.jsx'; // New component
-import DepartmentForm from '../components/departments/DepartmentForm.jsx';
-import AuditLogModal from '../components/departments/AuditLogModal.jsx';
+import { API_CLIENT } from '../Api/API_Client';
+import { setTeams,upsertTeam, removeTeam} from '../redux/features/user/userSlice';
+import { logDebug, logError } from '../utils/logger';
+import { fetchDepartments } from '../redux/features/user/userTrunk';
+import ToolBar from '../components/ui/ToolBar';
+import SearchInput from '../components/ui/SearchInput';
 
 const ManageDepartment = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();
 
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Pull departments from Redux slice
-  const departmentsById = useSelector((state) => state.user.departments.byId);
-  const departmentIds = useSelector((state) => state.user.departments.allIds);
-  const departments = departmentIds.map((id) => departmentsById[id]);
-
+  // Pull teams from Redux slice
+  const teamsById = useSelector((state) => state.user.teams.byId);
+  const teamIds = useSelector((state) => state.user.teams.allIds);
+  const teams = teamIds.map((id) => teamsById[id]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false);
-  const [auditLogs, setAuditLogs] = useState([]);
-  const [isLoadingAuditLogs, setIsLoadingAuditLogs] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
-  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [editingTeam, setEditingTeam] = useState(null);
 
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleSearchSelect = (item, type) => {
-    if (type === 'department') {
-      // Navigate to department details or highlight the department
-      console.log('Selected department:', item);
-      // You could implement department highlighting or navigation here
-    } else {
-      // Navigate to employee details
-      console.log('Selected employee:', item);
-      navigate(`/employee/${item.id}`);
-    }
-  };
-
+  // Handle add button click
   const handleAddClick = () => {
-    setEditingDepartment(null);
+    setEditingTeam(null);
     setIsOpen(true);
   };
 
-    // Function to fetch audit logs
-    const fetchAuditLogs = async () => {
-      setIsLoadingAuditLogs(true);
-      try {
-        const response = await API_CLIENT.get('/api/audit/departmentsLogs');
-        setAuditLogs(response.data.data || response.data); // Handle both structured and raw responses
-      } catch (error) {
-        logError('Error fetching audit logs:', error);
-        alert('Failed to fetch audit logs');
-      } finally {
-        setIsLoadingAuditLogs(false);
-      }
-    };
-
-    // Function to handle history icon click
-    const handleHistoryClick = () => {
-      setIsAuditLogOpen(true);
-      fetchAuditLogs();
-    };
-
-  // Fetch departments with pagination
+  // Fetch teams with pagination
   useEffect(() => {
-    if (departmentIds.length > 0) {
-      logDebug('Departments already fetched, skipping API call');
-      return;
-    }
 
-    const fetchDeps = async () => {
+    if (teamIds.length > 0) {
+      logDebug('Teams already fetched, skipping API call');
+      return;
+
+    }
+    const fetchTeams = async () => {
       setIsLoading(true);
       try {
         const data = await fetchDepartments(currentPage, itemsPerPage, searchTerm);
-        logDebug('Fetched departments:', data);
-        dispatch(setDepartments(data.departments));
+        logDebug('Fetched teams:', data);
+        dispatch(setTeams(data));
         setTotalItems(data.length);
       } catch (error) {
-        logError('Error fetching departments:', error);
+        logError('Error fetching teams:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDeps();
-  }, [dispatch, currentPage, itemsPerPage, searchTerm, departmentIds]);
+    fetchTeams();
+  }, [dispatch, currentPage, itemsPerPage, searchTerm]);
 
+  // Handle department selection
   const handleSelectDepartment = (departmentId, isSelected) => {
     setSelectedDepartments((prev) =>
       isSelected ? [...prev, departmentId] : prev.filter((id) => id !== departmentId)
     );
   };
+
   const handleSelectAllDepartments = (e) => {
-    setSelectedDepartments(e.target.checked ? departmentIds : []);
+    if (e.target.checked) {
+      setSelectedDepartments(teamIds);
+    } else {
+      setSelectedDepartments([]);
+    }
   };
 
-  const handleEdit = (department) => {
-    const deptToEdit = {
-      ...department,
-      department_id: department.id,
-      department_name: department.name
+  const handleEdit = (team) => {
+    // Transform team data back to the form's expected structure
+    const teamToEdit = {
+      ...team,
+      department_id: team.id,
+      department_name: team.name
     };
-    setEditingDepartment(deptToEdit);
+    setEditingTeam(teamToEdit);
     setIsOpen(true);
   };
 
-  const handleDelete = async (departmentId) => {
+  const handleDelete = async (teamId) => {
     if (window.confirm(`Are you sure you want to delete this department?`)) {
       try {
-        await API_CLIENT.delete(`/departments/${departmentId}`);
-        dispatch(removeDepartment({ departmentId }));
-        setSelectedDepartments((prev) => prev.filter((id) => id !== departmentId));
-
-        if (departments.length === 1 && currentPage > 1) {
+        await API_CLIENT.delete(`/departments/${teamId}`);
+        dispatch(removeTeam({ teamId }));
+        setSelectedDepartments((prev) => prev.filter((id) => id !== teamId));
+        
+        // Refresh the current page if we're left with no items after deletion
+        if (teams.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
       } catch (error) {
@@ -135,52 +110,43 @@ const ManageDepartment = () => {
     }
   };
 
-  const handleViewEmployees = (departmentId, isActive) => {
+  const handleViewEmployees = (departmentId, isActive,depname) => {
     navigate(`/department/${departmentId}/employees?active=${isActive}`);
   };
 
   const handleFormSuccess = () => {
-    setEditingDepartment(null);
+    setEditingTeam(null);
     setIsOpen(false);
   };
-  // Rest of your component remains the same...
 
   return (
-    <div>
+    <div >
       <ToolBar
         onAddClick={handleAddClick}
-        addButtonLabel="Department"
+        addButtonLabel=" Department"
         addButtonIcon={<UsersRound size={16} />}
         className="p-4 bg-white border rounded shadow-sm mb-4"
         searchBar={
           <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <EnhancedSearchInput
-              onSearchChange={handleSearchChange}
-              onSelect={handleSearchSelect}
-              placeholder="Search departments or employees..."
+            <SearchInput
+              placeholder="Search departments..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="flex-grow"
             />
           </div>
         }
         rightElements={
-          <div className="flex gap-2">
-            <button 
-              onClick={handleHistoryClick}
-              className="flex items-center gap-2 px-3 py-1 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition"
-              title="View Audit History"
-            >
-              <History size={17} />
-              History
-            </button>
-            
-            <button className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-              <UserPlus size={17} />
-              Employee
-            </button>
-          </div>
+          <button className="flex items-center gap-2 px-2  p-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+            <UserPlus size={17} />
+            Employee
+          </button>
         }
       />
+
+      {/* Department List Component */}
       <DepartmentList
-        departments={departments}
+        departments={teams}
         selectedDepartments={selectedDepartments}
         isLoading={isLoading}
         searchTerm={searchTerm}
@@ -195,39 +161,25 @@ const ManageDepartment = () => {
         onPageChange={setCurrentPage}
       />
 
-      {/* Department Form Modal */}
+      {/* Modal */}
       <Modal
         isOpen={isOpen}
         onClose={() => {
           setIsOpen(false);
-          setEditingDepartment(null);
+          setEditingTeam(null);
         }}
-        title={editingDepartment ? 'Edit Department' : 'Create Department'}
+        title={editingTeam ? 'Edit Department' : 'Create Department'}
         size="md"
       >
         <DepartmentForm
           onClose={() => {
             setIsOpen(false);
-            setEditingDepartment(null);
+            setEditingTeam(null);
           }}
           onSuccess={handleFormSuccess}
-          initialData={editingDepartment}
+          initialData={editingTeam}
         />
       </Modal>
-
-      {/* Audit Log Modal */}
-      <Modal
-  isOpen={isAuditLogOpen}
-  onClose={() => setIsAuditLogOpen(false)}
-  title="Department Audit History"
-  size="lg"
->
-  <AuditLogModal
-    logs={auditLogs}
-    isLoading={isLoadingAuditLogs}
-  />
-</Modal>
-      {/* Rest of your component remains the same... */}
     </div>
   );
 };

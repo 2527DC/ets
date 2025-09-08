@@ -21,7 +21,6 @@ const getTokenExpiration = (token) => {
 };
 
 // Async thunk to fetch user data based on token
-
 export const fetchUserFromToken = createAsyncThunk(
   "auth/fetchUserFromToken",
   async (_, { rejectWithValue }) => {
@@ -49,6 +48,7 @@ export const fetchUserFromToken = createAsyncThunk(
     }
   }
 );
+
 const initialState = {
   user: null,
   token: null,
@@ -84,11 +84,16 @@ const authSlice = createSlice({
     // New reducer to handle token-based state restoration
     setAuthFromToken: (state, action) => {
       state.user = action.payload.user;
+      state.permissions = action.payload.permissions || null;
       state.isAuthenticated = true;
-      state.loading = false;
+      state.loading = false; // Ensure loading is set to false
     },
     clearError: (state) => {
       state.error = null;
+    },
+    // Add a reducer to explicitly set loading state
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -147,7 +152,7 @@ const authSlice = createSlice({
       })
       .addCase(fetchUserFromToken.fulfilled, (state, action) => {
         const { user, allowedModules } = action.payload;
-        logDebug(" this is the refresh payloud " ,allowedModules)
+        logDebug(" this is the refresh payload " , allowedModules)
         state.user = user;
         state.permissions = allowedModules;
         state.isAuthenticated = true;
@@ -157,7 +162,7 @@ const authSlice = createSlice({
         // Update session storage
         sessionStorage.setItem('userPermissions', JSON.stringify({
           user,
-          permissions:allowedModules,
+          permissions: allowedModules,
           lastUpdated: new Date().toISOString()
         }));
       })
@@ -165,7 +170,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.error = action.payload;
-        console.log(" this is the error when fetching the permission " ,action.payload);
+        console.log(" this is the error when fetching the permission " , action.payload);
         
         // Clear invalid token
         Cookies.remove('auth_token', { path: '/' });
@@ -180,7 +185,8 @@ export const {
   logout, 
   setAuthCredentials,
   setAuthFromToken,
-  clearError
+  clearError,
+  setLoading
 } = authSlice.actions;
 
 // Selectors
@@ -195,7 +201,7 @@ export const selectLastLogin = (state) => state.auth.lastLogin;
 // Utility function to initialize auth state
 export const initializeAuth = () => async (dispatch) => {
   const token = Cookies.get("auth_token");
-logDebug(" this is the token when refres in initializeAuth" ,token)
+  
   if (!token) {
     // No token → reset auth state
     dispatch(resetAuthState());
@@ -223,21 +229,29 @@ logDebug(" this is the token when refres in initializeAuth" ,token)
     const storedData = sessionStorage.getItem("userPermissions");
 
     if (storedData) {
-      const { permissions } = JSON.parse(storedData);
-      dispatch(
-        setAuthFromToken({
-          token,
-          user,
-          permissions,
-        })
-      );
+      try {
+        const parsedData = JSON.parse(storedData);
+        const { permissions } = parsedData;
+        
+        dispatch(
+          setAuthFromToken({
+            user,
+            permissions,
+          })
+        );
+      } catch (error) {
+        console.error("Failed to parse stored permissions:", error);
+        // If parsing fails, fetch from server
+        await dispatch(fetchUserFromToken());
+      }
     } else {
       // If no session storage → fetch from server
       await dispatch(fetchUserFromToken());
     }
   } catch (error) {
     console.error("Failed to initialize auth state:", error);
-    
+    // Set loading to false even on error
+    dispatch(setLoading(false));
     dispatch(resetAuthState());
   }
 };

@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { logDebug } from '../../../utils/logger';
 
-// Initial state
+// Initial state with typed structure
 const initialState = {
-  departments: {
+  teams: {
     byId: {},
     allIds: []
   },
@@ -15,149 +15,188 @@ const initialState = {
   lastFetchedDepId: null
 };
 
-// Helper function: normalize array to object by key
-const normalizeArrayToObject = (array, key) =>
-  array.reduce((acc, item) => {
+// Helper functions for common operations
+const normalizeArrayToObject = (array, key) => {
+  return array.reduce((acc, item) => {
     acc[item[key]] = item;
     return acc;
   }, {});
+};
 
-// Create slice
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    // Set all departments (replace existing)
-    setDepartments: {
+    // Reset and set all teams
+    setTeams: {
       reducer(state, action) {
-        const departments = action.payload;
-        state.departments.byId = normalizeArrayToObject(departments, 'id');
-        state.departments.allIds = departments.map(dep => dep.id);
+        const teams = action.payload;
+        state.teams.byId = normalizeArrayToObject(teams, 'id');
+        state.teams.allIds = teams.map(team => team.id);
       },
-      prepare(departments) {
-        return {
-          payload: departments.map(dep => ({
-            ...dep,
-            employeeIds: dep.employeeIds || []
-          }))
-        };
+      prepare(teams) {
+        return { payload: teams.map(team => ({ 
+          ...team, 
+          employeeIds: team.employeeIds || [] 
+        })) };
       }
     },
-
+    
+    // Set all departments (for filtering)
+    setAllDepartments: (state, action) => {
+      const departments = action.payload;
+      departments.forEach(dept => {
+        state.teams.byId[dept.id] = dept;
+        if (!state.teams.allIds.includes(dept.id)) {
+          state.teams.allIds.push(dept.id);
+        }
+      });
+    },
+    
     setLastFetchedDepId(state, action) {
       state.lastFetchedDepId = action.payload;
     },
-
-    // Add or update a single department
-    upsertDepartment(state, action) {
-      const dep = action.payload;
-      state.departments.byId[dep.id] = { ...dep };
-
-      if (!state.departments.allIds.includes(dep.id)) {
-        state.departments.allIds.push(dep.id);
+    
+    // Add or update a single team
+    upsertTeam(state, action) {
+      const team = action.payload;
+      // const existingTeam = state.teams.byId[team.id];
+      state.teams.byId[team.id] = { ...team};
+      
+      logDebug("Updated team:", state.teams.byId[team.id]);
+      if (!state.teams.allIds.includes(team.id)) {
+        state.teams.allIds.push(team.id);
+        logDebug("Added new team ID:", team.id);
       }
-
-      logDebug("Updated department:", state.departments.byId[dep.id]);
     },
-
-    // Remove a department and optionally its employees
-    removeDepartment(state, action) {
-      const { departmentId, removeEmployees = false } = action.payload;
-
-      if (!state.departments.byId[departmentId]) return;
-
+    
+    // Remove a team and optionally its employees
+    removeTeam(state, action) {
+      const { teamId, removeEmployees = false } = action.payload;
+      
+      if (!state.teams.byId[teamId]) return;
+      
       // Remove employees if requested
       if (removeEmployees) {
-        const employeeIds = state.departments.byId[departmentId].employeeIds;
+        const employeeIds = state.teams.byId[teamId].employeeIds;
         employeeIds.forEach(id => {
           delete state.employees.byId[id];
           state.employees.allIds = state.employees.allIds.filter(eId => eId !== id);
         });
       }
-
-      // Remove department
-      delete state.departments.byId[departmentId];
-      state.departments.allIds = state.departments.allIds.filter(id => id !== departmentId);
+      
+      // Remove team
+      delete state.teams.byId[teamId];
+      state.teams.allIds = state.teams.allIds.filter(id => id !== teamId);
     },
-
-    // Add or update an employee globally
+    
+    // Add or update an employee
     upsertEmployee(state, action) {
       const employee = action.payload;
       state.employees.byId[employee.id] = employee;
-
+      
       if (!state.employees.allIds.includes(employee.id)) {
         state.employees.allIds.push(employee.id);
       }
     },
-
-    // Add employee to a department (without duplication)
-    addEmployeeToDepartment(state, action) {
-      const { departmentId, employee } = action.payload;
-
-      // Add/update employee globally
+    
+    // Add employee to a team (without duplicating)
+    addEmployeeToTeam(state, action) {
+      const { teamId, employee } = action.payload;
+      
+      // Add/update employee first
       state.employees.byId[employee.id] = employee;
       if (!state.employees.allIds.includes(employee.id)) {
         state.employees.allIds.push(employee.id);
       }
-
-      // Add employee to department
-      if (state.departments.byId[departmentId] &&
-          !state.departments.byId[departmentId].employeeIds.includes(employee.id)) {
-        state.departments.byId[departmentId].employeeIds.push(employee.id);
+      
+      // Add to team if not already present
+      if (state.teams.byId[teamId] && 
+          !state.teams.byId[teamId].employeeIds.includes(employee.id)) {
+        state.teams.byId[teamId].employeeIds.push(employee.id);
       }
     },
-
-    // Remove employee from a department (optionally globally)
-    removeEmployeeFromDepartment(state, action) {
-      const { departmentId, employeeId, removeGlobally = false } = action.payload;
-
-      // Remove from department
-      if (state.departments.byId[departmentId]) {
-        state.departments.byId[departmentId].employeeIds =
-          state.departments.byId[departmentId].employeeIds.filter(id => id !== employeeId);
+    
+    // Remove employee from a team (optionally globally)
+    removeEmployeeFromTeam(state, action) {
+      const { teamId, employeeId, removeGlobally = false } = action.payload;
+      
+      // Remove from team
+      if (state.teams.byId[teamId]) {
+        state.teams.byId[teamId].employeeIds = 
+          state.teams.byId[teamId].employeeIds.filter(id => id !== employeeId);
       }
-
+      
       // Remove globally if needed
       if (removeGlobally) {
         delete state.employees.byId[employeeId];
         state.employees.allIds = state.employees.allIds.filter(id => id !== employeeId);
-
-        // Remove from all departments
-        Object.values(state.departments.byId).forEach(dep => {
-          dep.employeeIds = dep.employeeIds.filter(id => id !== employeeId);
+        
+        // Remove from all teams
+        Object.values(state.teams.byId).forEach(team => {
+          team.employeeIds = team.employeeIds.filter(id => id !== employeeId);
         });
       }
     },
-
-    // Set employees for a specific department
+    
     setDepartmentEmployees(state, action) {
-      const { departmentId, employees } = action.payload;
-
-      // Add employees globally
+      const { department_id, employees } = action.payload;
+      // Store each employee globally
       employees.forEach(emp => {
-        state.employees.byId[emp.id] = emp;
-        if (!state.employees.allIds.includes(emp.id)) {
-          state.employees.allIds.push(emp.id);
+        state.employees.byId[emp.employee_id] = emp;
+
+        if (!state.employees.allIds.includes(emp.employee_id)) {
+          state.employees.allIds.push(emp.employee_id); 
         }
       });
+      
+      state.departmentEmployees[department_id] = employees.map(emp => emp.employee_id);
+    },
+    
+    // Move employee between teams
+    moveEmployee(state, action) {
+      const { fromTeamId, toTeamId, employeeId } = action.payload;
+      
+      if (state.teams.byId[fromTeamId]) {
+        state.teams.byId[fromTeamId].employeeIds = 
+          state.teams.byId[fromTeamId].employeeIds.filter(id => id !== employeeId);
+      }
+      
+      if (state.teams.byId[toTeamId] && 
+          !state.teams.byId[toTeamId].employeeIds.includes(employeeId)) {
+        state.teams.byId[toTeamId].employeeIds.push(employeeId);
+      }
+    },
 
-      // Map department → employee IDs
-      state.departmentEmployees[departmentId] = employees.map(emp => emp.id);
-    }
+    setDepartments: (state, action) => {
+      const departments = action.payload; // array of depts
+    
+      state.teams.byId = {};
+      state.teams.allIds = [];
+    
+      departments.forEach((dept) => {
+        state.teams.byId[dept.id] = dept;
+        state.teams.allIds.push(dept.id);
+      });
+    },
+    
   }
 });
 
-// Export actions
+// In your userSlice.js
+
 export const {
   setDepartments,
-  upsertDepartment,
-  removeDepartment,
+  setTeams,
+  setAllDepartments, 
+  upsertTeam,
+  removeTeam,
   upsertEmployee,
-  addEmployeeToDepartment,
-  removeEmployeeFromDepartment,
+  addEmployeeToTeam,
+  removeEmployeeFromTeam,
+  moveEmployee,
   setLastFetchedDepId,
   setDepartmentEmployees
 } = userSlice.actions;
 
-// Export reducer
 export default userSlice.reducer;

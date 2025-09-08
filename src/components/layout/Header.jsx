@@ -1,7 +1,7 @@
-import React from "react";
-import { Bell, Menu, Settings } from "lucide-react";
+import React from 'react';
+import { Bell, Search, Menu, Settings } from 'lucide-react';
 
-const Header = ({ toggleSidebar, title = "Dashboard" }) => {
+const Header = ({ toggleSidebar, title = 'Dashboard' }) => {
   return (
     <header className="bg-white border-b border-gray-200 fixed w-full z-10">
       <div className="px-4 sm:px-6 lg:px-8">

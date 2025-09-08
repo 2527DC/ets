@@ -1,43 +1,88 @@
 export const pathTitleMap = {
-  '/': 'Login',
+  // Dashboard Routes
   '/dashboard': 'Dashboard',
-  '/manage-team': 'Manage Team',
+  '/admin_dashboard': 'Admin Dashboard',
+  '/admin-dashboard': 'Admin Dashboard',
+  '/client_dashboard': 'Client Dashboard',
+  '/company-dashboard': 'Company Dashboard',
+
+  // User Management
+  '/users': 'Manage Users',
+  '/user-management': 'User Management',
+  '/employees': 'Employee Management',
+  '/employee': 'Employee',
+  '/department': 'Department Employees',
+
+  // Management
+  '/departments': 'Departments',
+  '/groups': 'Group Management',
+  '/mappings': 'Mapping Management',
+
+  // Policy & Service
+  '/policy-management': 'Policy Management',
+  '/policies': 'Policies',
+  '/policy-rules': 'Policy Rules',
+  '/services': 'Service Management',
+  '/tenants': 'Tenant Management',
+
+  // Fleet Management
+  '/vehicles': 'Manage Vehicles',
+  '/old-vehicles': 'Manage Vehicles (Legacy)',
+  '/vehicle-types': 'Vehicle Types',
+  '/vehicle-group': 'Vehicle Groups',
+  '/drivers': 'Manage Drivers',
+
+  // Vendor Management
+  '/vendors': 'Manage Vendors',
+
+  // Operations
+  '/routing': 'Route Management',
+  '/routing-management': 'Routing Management',
+  '/tracking': 'Tracking',
+  '/tracking-management': 'Tracking Management',
+  '/bookings': 'Manage Bookings',
+  '/booking-management': 'Booking Management',
+
+  // Shift Management
+  '/shifts': 'Manage Shifts',
+  '/manage-shift': 'Shift Management',
   '/shift-categories': 'Shift Categories',
-  '/role-management': 'Role Management', 
-  '/manage-company': 'Manage Company',
-  '/manage-shift': 'Manage Shifts',
-  '/manage-vendors': 'Manage Vendors',
-  '/manage-drivers': 'Manage Drivers',
-  '/manage-vehicles': 'Manage Vehicles',
-  '/employee/create-employee': 'Create Employee',
-  '/department': 'Manage Employees', // Base path for all department routes
-  '/department/:depId/employees': 'Manage Employees',
-  '/department/:depId/employees/:employeeId/edit': 'Edit Employee',
-  '/department/:depId/employees/:employeeId/view': 'View Employee'
+  '/shift-Categories': 'Shift Categories Management',
+  '/cutoff-settings': 'Cutoff Settings',
+
+  // Additional Routes
+  '/manage-company': 'Manage Companies',
+  '/role-management': 'Role Mangement',
+  '/staffs': 'Manage Staff',
+  '/manage-client': 'Manage Clients',
+  '/vehicle-contract': 'Vehicle Contracts',
+  '/contract': 'Contracts',
+  '/calender': 'Calendar',
+
+  // Utility
+  '/unauthorized': 'Unauthorized'
 };
 
+/**
+ * Gets the page title based on the current path
+ * @param {string} path - The current path (e.g. '/vehicles/add-vehicle')
+ * @returns {string} The matching title or 'Dashboard' as fallback
+ */
 export const getTitleFromPath = (path) => {
   // Handle root path
-  if (path === '/') return pathTitleMap['/'];
+  if (path === '/') return 'Login';
   
   // Split path into segments
-  const pathSegments = path.split('/').filter(Boolean);
+  const segments = path.split('/').filter(segment => segment !== '');
   
-  // Check for department/employees paths
-  if (pathSegments[0] === 'department') {
-    if (pathSegments[2] === 'employees') {
-      if (pathSegments[4] === 'edit') {
-        return pathTitleMap['/department/:depId/employees/:employeeId/edit'];
-      }
-      if (pathSegments[4] === 'view') {
-        return pathTitleMap['/department/:depId/employees/:employeeId/view'];
-      }
-      return pathTitleMap['/department/:depId/employees'];
+  // Try to find the longest matching path
+  for (let i = segments.length; i > 0; i--) {
+    const testPath = '/' + segments.slice(0, i).join('/');
+    if (pathTitleMap[testPath]) {
+      return pathTitleMap[testPath];
     }
-    return pathTitleMap['/department'];
   }
   
-  // Check for other specific paths
-  const basePath = '/' + pathSegments[0];
-  return pathTitleMap[basePath] || 'Dashboard';
+  // Fallback to Dashboard if no match found
+  return 'Dashboard';
 };

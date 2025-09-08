@@ -11,7 +11,6 @@ import "react-toastify/dist/ReactToastify.css";
 import ManageEmployees from "./pages/ManageEmployees";
 import VendorManagement from "./pages/VendorManagement";
 import VehicleManagement from "./pages/VehicleManagement";
-import ShiftManagement from "./pages/ShiftManagement";
 import DriverManagement from "./pages/DriverManagement";
 import Practice from "./pages/Practice";
 import SuperAdminLayout from "./superadmin/SuperAdminLayout";
@@ -20,6 +19,8 @@ import { useDispatch } from "react-redux";
 import { initializeAuth } from "./redux/features/auth/authSlice";
 import CompanyManagement from "./pages/CompanyManagement";
 import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
+import CompanyDashboard from "./companies/CompanyDashboard";
+import RoleManagement from "./pages/RoleManagement";
 
 function App() {
 
@@ -124,13 +125,13 @@ function App() {
           } 
         >
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<h1>This is the dashboard</h1>} />
-            <Route path="/manage-team" element={<ManageDepartment />} />
+            <Route path="/dashboard" element={<CompanyDashboard/>} />
+            <Route path="departments" element={<ManageDepartment />} />
             <Route path="/shift-categories" element={<ManageDepartment />} />
-            <Route path="/role-management" element={<h1>This is the role Management View</h1>} />
+            <Route path="/role-management" element={<RoleManagement/>} />
             <Route path="/manage-drivers" element={<DriverManagement/>} />
             <Route path="/manage-company" element={<ManageDepartment />} />
-            <Route path="/manage-shift" element={<ShiftManagement />} />
+            <Route path="/scheduling" element={<h1> this is the shift maangement</h1>} />
             <Route path="/manage-vendors" element={<VendorManagement />} />
             <Route path="/manage-vehicles" element={<VehicleManagement />} />
             <Route path="/employee/create-employee" element={<EmployeeForm />} />

@@ -79,7 +79,7 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout from Super Admin?")) {
       alert("Logging out from Super Admin...");
-      window.location.href = '/superadmin/login';
+      window.location.href = '/superadmin';
     }
   };
 

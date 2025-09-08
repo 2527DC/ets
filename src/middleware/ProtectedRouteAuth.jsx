@@ -11,7 +11,7 @@ const ProtectedRouteAuth = ({ type, redirectPath, authRedirectPath }) => {
   if (token && !user) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <h2 className="text-xl font-semibold animate-pulse">Loading...</h2>
+        <h2 className="text-xl font-semibold animate-pulse">Loading... man wai</h2>
       </div>
     );
   }
