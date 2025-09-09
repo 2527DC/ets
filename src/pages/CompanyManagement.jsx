@@ -1,38 +1,64 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Plus } from 'lucide-react';
 import EntityModal from '../components/EntityModal';
 import CompanyList from '../companies/CompanyList';
+import { 
+  fetchCompaniesThunk, 
+  createCompanyThunk, 
+  updateCompanyThunk 
+} from '../redux/features/company/companyThunks';
 
 const CompanyManagement = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('create');
-  const [selectedEntity, setSelectedEntity] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const dispatch = useDispatch();
+  const { data: companies = [], loading, error, updating } = useSelector((state) => state.company || {});
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+  const [selectedEntity, setSelectedEntity] = useState(null);
+
+  // Fetch companies on mount
+  useEffect(() => {
+    dispatch(fetchCompaniesThunk());
+  }, [dispatch]);
+
+  // Open modal in create mode
   const handleCreate = () => {
     setModalMode('create');
     setSelectedEntity(null);
     setIsModalOpen(true);
   };
 
+  // Open modal in edit mode with prefilled data
   const handleEdit = (company) => {
     setModalMode('edit');
     setSelectedEntity(company);
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (formData) => {
-    console.log('Submitting:', formData);
-    // API call to create/update company/vendor
+  // Handle form submission
+  const handleSubmit = async (formData) => {
+    if (modalMode === 'create') {
+      // Create new company
+      const resultAction = await dispatch(createCompanyThunk(formData));
+      if (!createCompanyThunk.fulfilled.match(resultAction)) {
+        console.error('Failed to create company:', resultAction.payload);
+      }
+    } else if (modalMode === 'edit' && selectedEntity) {
+      // Update existing company
+      const resultAction = await dispatch(updateCompanyThunk({ companyId: selectedEntity.id, formData }));
+      if (!updateCompanyThunk.fulfilled.match(resultAction)) {
+        console.error('Failed to update company:', resultAction.payload);
+      }
+    }
+
     setIsModalOpen(false);
-    // Trigger refresh of the company list
-    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header with Add Button */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Companies Management</h1>
@@ -48,19 +74,25 @@ const CompanyManagement = () => {
         </div>
 
         {/* Company List */}
-        <CompanyList 
-          onEditCompany={handleEdit}
-          refreshTrigger={refreshTrigger}
-        />
+        {loading ? (
+          <p>Loading companies...</p>
+        ) : error ? (
+          <p className="text-red-500">Error: {error}</p>
+        ) : (
+          <CompanyList
+            companies={companies}
+            onEditCompany={handleEdit} // pass edit handler
+          />
+        )}
 
         {/* Entity Modal */}
         <EntityModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           entityType="company"
-          entityData={selectedEntity}
+          entityData={selectedEntity}  // prefill data for edit
           onSubmit={handleSubmit}
-          mode={modalMode}
+          mode={modalMode}             // 'create' or 'edit'
         />
       </div>
     </div>
