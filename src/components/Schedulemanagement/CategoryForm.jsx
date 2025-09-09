@@ -17,7 +17,7 @@ const CategoryForm = ({ initialData = { name: "", description: "" }, onSubmit, o
         type="text"
         value={formData.name}
         onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-        placeholder="Enter shift name"
+        placeholder="Enter shift category name"
         required
       />
 
@@ -27,7 +27,7 @@ const CategoryForm = ({ initialData = { name: "", description: "" }, onSubmit, o
         type="textarea"
         value={formData.description}
         onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-        placeholder="Enter shift description"
+        placeholder="Enter shift category description"
         required
       />
 
@@ -35,13 +35,13 @@ const CategoryForm = ({ initialData = { name: "", description: "" }, onSubmit, o
         <button
           type="button"
           onClick={onCancel}
-          className="bg-gray-300 px-4 py-2 rounded"
+          className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
         >
           Save
         </button>

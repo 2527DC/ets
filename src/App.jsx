@@ -22,6 +22,7 @@ import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
 import CompanyDashboard from "./companies/CompanyDashboard";
 import RoleManagement from "./pages/RoleManagement";
 import RouteManagement from "./pages/RouteManagement";
+import Schedulemanagement from "./pages/Schedulemanagement";
 
 function App() {
 
@@ -132,7 +133,7 @@ function App() {
             <Route path="/role-management" element={<RoleManagement/>} />
             <Route path="/manage-drivers" element={<DriverManagement/>} />
             <Route path="/manage-company" element={<ManageDepartment />} />
-            <Route path="/scheduling" element={<h1> this is the shift maangement</h1>} />
+            <Route path="/scheduling" element={<Schedulemanagement/>} />
             <Route path="/manage-vendors" element={<VendorManagement />} />
             <Route path="/manage-vehicles" element={<VehicleManagement />} />
             <Route path="/employee/create-employee" element={<EmployeeForm />} />

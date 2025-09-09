@@ -14,6 +14,18 @@ const ShiftForm = ({
     if (onSubmit) onSubmit(formData);
   };
 
+  // Prepare shift type options
+  const shiftTypeOptions = [
+    { label: "LOGIN", value: "LOGIN" },
+    { label: "LOGOUT", value: "LOGOUT" }
+  ];
+
+  // Prepare category options
+  const categoryOptions = categories.map((cat) => ({ 
+    label: cat.name, 
+    value: cat.id 
+  }));
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {/* Shift Type */}
@@ -23,7 +35,7 @@ const ShiftForm = ({
         type="select"
         value={formData.shiftType}
         onChange={(e) => setFormData((prev) => ({ ...prev, shiftType: e.target.value }))}
-        options={["LOGIN", "LOGOUT"]}
+        options={shiftTypeOptions}
         required
       />
 
@@ -58,7 +70,7 @@ const ShiftForm = ({
         type="select"
         value={formData.shiftCategoryId}
         onChange={(e) => setFormData((prev) => ({ ...prev, shiftCategoryId: e.target.value }))}
-        options={categories.map((cat) => ({ label: cat.name, value: cat.id }))}
+        options={categoryOptions}
         required
       />
 
@@ -66,13 +78,13 @@ const ShiftForm = ({
         <button
           type="button"
           onClick={onCancel}
-          className="bg-gray-300 px-4 py-2 rounded"
+          className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
         >
           Save
         </button>

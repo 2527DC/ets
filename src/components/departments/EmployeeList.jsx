@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Edit, Eye } from 'lucide-react';
+import { Edit, Eye, HistoryIcon } from 'lucide-react';
 import { logDebug } from '../../utils/logger';
 import ConfirmationModal from '../modals/ConfirmationModal';
 
@@ -13,12 +13,12 @@ const EmployeeList = ({
   onEdit,
   onView,
   onStatusChange,
+  onHistory, // Add this new prop for history action
   hasActiveSearch = false
 }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
 
   const handleStatusToggle = (employeeId, currentIsActive) => {
     const newIsActive = !currentIsActive;
@@ -43,7 +43,6 @@ const EmployeeList = ({
       setPendingStatusChange(null);
     } catch (error) {
       console.error('Failed to update status:', error);
-      // You might want to show an error message here
     } finally {
       setIsProcessing(false);
     }
@@ -53,7 +52,9 @@ const EmployeeList = ({
     setShowConfirmation(false);
     setPendingStatusChange(null);
   };
-logDebug("pendingStatusChange is " ,pendingStatusChange)
+
+  logDebug("pendingStatusChange is ", pendingStatusChange);
+
   return (
     <div className="space-y-4">
       {/* Confirmation Modal */}
@@ -82,7 +83,7 @@ logDebug("pendingStatusChange is " ,pendingStatusChange)
               <th className="p-4">Mobile Number</th>
               <th className="p-4">Gender</th>
               <th className="p-4">Status</th>
-              <th className="p-4">Actions</th>
+              <th className="p-4 text-center">Actions</th> {/* Added text-center */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -172,31 +173,41 @@ logDebug("pendingStatusChange is " ,pendingStatusChange)
                       </span>
                     </label>
                   </td>
-                  <td
-                    className="p-4 flex space-x-2 justify-center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onView?.(employee);
-                      }}
-                      className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200"
-                      title="View"
-                    >
-                      <Eye size={16} />
-                    </button>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-center space-x-1"> {/* Changed to space-x-1 and justify-center */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onView?.(employee);
+                        }}
+                        className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200"
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit?.(employee);
-                      }}
-                      className="p-2 rounded-full bg-green-50  hover:bg-green-100 hover:text-green-800 transition-colors duration-200"
-                      title="Edit"
-                    >
-                      <Edit  size={16} />
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.(employee);
+                        }}
+                        className="p-2 rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors duration-200"
+                        title="Edit Employee"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onHistory?.(employee); // Use the new onHistory prop
+                        }}
+                        className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors duration-200"
+                        title="View History"
+                      >
+                        <HistoryIcon size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

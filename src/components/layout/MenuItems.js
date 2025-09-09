@@ -191,15 +191,17 @@ export const MenuItems = [
         icon: Layers, 
         permissionModule: 'shift_category' 
       },
-      { 
-        path: '/cutoff-settings', 
-        name: 'Cutoff Settings', 
-        icon: Target, 
-        permissionModule: 'cutoff' 
-      }
+      
     ]
   },
 
+  { 
+
+    path: '/cutoff-settings', 
+    name: 'Cutoff Settings', 
+    icon: Target, 
+    permissionModule: 'cutoff_window' 
+  },
   // ================================
   // 🔐 ROLE MANAGEMENT (Additional)
   // ================================

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// import EmployeeList from "";
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { API_CLIENT } from '../Api/API_Client';
 import { toast } from 'react-toastify';
@@ -11,6 +10,11 @@ import ToolBar from '../components/ui/ToolBar';
 import { setDepartmentEmployees, updateEmployeeStatus } from '../redux/features/user/userSlice';
 import EmployeeList from '../components/departments/EmployeeList';
 import endpoint from '../Api/Endpoints';
+import Modal from '../components/modals/Modal';
+import AuditLogModal from '../components/departments/AuditLogModal';
+
+// ✅ Import modal + audit log component
+
 
 const ManageEmployees = () => {
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,10 @@ const ManageEmployees = () => {
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchParams] = useSearchParams();
+
+  const [isAuditLogModalOpen, setIsAuditLogModalOpen] = useState(false);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [isAuditLogLoading, setIsAuditLogLoading] = useState(false);
 
   const navigate = useNavigate();
   const { depId } = useParams();
@@ -29,6 +37,7 @@ const ManageEmployees = () => {
     const ids = state.user.departmentEmployees[depId] || [];
     return ids.map((id) => state.user.employees.byId[id]);
   });
+
   useEffect(() => {
     fetchEmployeesByDepartment();
   }, [depId]);
@@ -73,13 +82,13 @@ const ManageEmployees = () => {
   };
 
   const handleView = (employee) => {
-    navigate(`/department/${employee.departmentId}/employees/${employee.employee_code}/view`, {
+    navigate(`/department/${employee.departmentId}/employees/${employee.userId}/view`, {
       state: { employee, fromChild: true },
     });
   };
-// :depId/employees/:userId/view
+
   const handleEdit = (employee) => {
-    navigate(`/department/${employee.departmentId}/employees/${employee.employee_code}/edit`, {
+    navigate(`/department/${employee.departmentId}/employees/${employee.userId}/edit`, {
       state: { employee },
     });
   };
@@ -88,13 +97,10 @@ const ManageEmployees = () => {
     setSearchTerm(query);
   };
 
-  // Filter employees based on search query
   const filteredEmployees = useMemo(() => {
     if (!allEmployees || allEmployees.length === 0) return [];
 
     let result = allEmployees;
-
-    // Apply search filter
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase().trim();
       result = result.filter(employee => {
@@ -102,39 +108,61 @@ const ManageEmployees = () => {
         const mobileMatch = employee.phone?.toString().includes(query);
         const emailMatch = employee.email?.toLowerCase().includes(query);
         const codeMatch = employee.userId?.toLowerCase().includes(query);
-        
         return nameMatch || mobileMatch || emailMatch || codeMatch;
       });
     }
-
     return result;
   }, [allEmployees, searchTerm]);
 
-// In your parent component
+  const handleStatusChange = async (employeeId, newIsActive) => {
+    try {
+      await API_CLIENT.patch(`api/users/status-update/${employeeId}`, null, { params: { isActive: newIsActive } });
+      dispatch(updateEmployeeStatus({ employeeId, isActive: newIsActive }));
+      toast.success(`Employee ${newIsActive ? "activated" : "deactivated"} successfully`);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
+      throw error;
+    }
+  };
 
+  // 🔹 Open Audit Log Modal
+  const handleEmployeeLog = async (employee) => {
+    setIsAuditLogLoading(true);
+    setIsAuditLogModalOpen(true);
 
-const handleStatusChange = async (employeeId, newIsActive) => {
-  try {
-    // API call here (commented out for now)
-    await API_CLIENT.patch(`api/users/status-update/${employeeId}`, null, { params: { isActive: newIsActive } });
-
-    // Update Redux state
-    dispatch(updateEmployeeStatus({ employeeId, isActive: newIsActive }));
-
-    // Success toast
-    toast.success(`Employee ${newIsActive ? "activated" : "deactivated"} successfully`);
-  } catch (error) {
-    console.error("Failed to update status:", error);
-    toast.error("Failed to update status");
-    throw error;
-  }
-};
-
+    try {
+      // Later replace with API call: await API_CLIENT.get(`/api/users/${employee.userId}/logs`);
+      const dummyLogs = [
+        {
+          id: 1,
+          action: "UPDATE",
+          action_description: "Changed phone number",
+          changes: ["phone: 9876543210 → 9123456780"],
+          changed_by: "Admin",
+          changed_at: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          action: "CREATE",
+          action_description: "Employee account created",
+          changes: ["name: John Doe", "email: john@example.com"],
+          changed_by: "System",
+          changed_at: new Date().toISOString(),
+        },
+      ];
+      setAuditLogs(dummyLogs);
+    } catch (err) {
+      toast.error("Failed to load employee logs");
+    } finally {
+      setIsAuditLogLoading(false);
+    }
+  };
 
   return (
     <div>
       <ToolBar
-      title={`Employees in Department ${depId}`}
+        title={`Employees in Department ${depId}`}
         onAddClick={handleAddClick}
         addButtonLabel="Add employee"
         addButtonIcon={<Plus size={16} />}
@@ -150,9 +178,9 @@ const handleStatusChange = async (employeeId, newIsActive) => {
           </div>
         }
       />
-      
+
       <EmployeeList
-      onStatusChange={handleStatusChange}
+        onStatusChange={handleStatusChange}
         employees={filteredEmployees}
         loading={loading}
         error={error}
@@ -161,7 +189,18 @@ const handleStatusChange = async (employeeId, newIsActive) => {
         onRowClick={handleRowClick}
         onView={handleView}
         onEdit={handleEdit}
+        onHistory={handleEmployeeLog} 
       />
+
+      {/* 🔹 Employee Audit Log Modal */}
+      <Modal
+        isOpen={isAuditLogModalOpen}
+        onClose={() => setIsAuditLogModalOpen(false)}
+        title="Employee Audit History"
+        size="lg"
+      >
+        <AuditLogModal logs={auditLogs} isLoading={isAuditLogLoading} />
+      </Modal>
     </div>
   );
 };

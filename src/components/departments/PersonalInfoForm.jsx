@@ -70,10 +70,10 @@ logDebug('this is the teams', teams);
           </label>
           <input
             type="text"
-            name="employee_code"
-            value={formData.employee_code || ''}
+            name="userId"
+            value={formData.userId || ''}
             onChange={onChange}
-            className={getInputClasses(errors.employee_code)}
+            className={getInputClasses(errors.userId)}
             placeholder="Enter employee ID"
             disabled={isReadOnly}
           />
@@ -114,9 +114,9 @@ logDebug('this is the teams', teams);
             disabled={isReadOnly}
           >
             <option value="">Select gender</option>
-            <option value="Male">MALE</option>
-            <option value="Female">FEMALE</option>
-            <option value="Others">OTHER</option>
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+            <option value="OTHERS">OTHER</option>
           </select>
           {errors.gender && (
             <p className="mt-1 text-sm text-red-500">{errors.gender}</p>
@@ -130,16 +130,16 @@ logDebug('this is the teams', teams);
           </label>
           <input
             type="tel"
-            name="mobile_number"
-            value={formData.mobile_number || ''}
+            name="phone"
+            value={formData.phone || ''}
             onChange={onChange}
             className={getInputClasses(false)}
             placeholder="Enter mobile number"
             disabled={isReadOnly}
 
           />
-           {errors.mobile_number && (
-            <p className="mt-1 text-sm text-red-500">{errors.mobile_number}</p>
+           {errors.phone && (
+            <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
           )}
         </div>
 
@@ -150,15 +150,15 @@ logDebug('this is the teams', teams);
           </label>
           <input
             type="tel"
-            name="alternate_mobile_number"
-            value={formData.alternate_mobile_number || ''}
+            name="alternativePhone"
+            value={formData.alternativePhone || ''}
             onChange={onChange}
-            className={getInputClasses(errors.alternate_mobile_number)}
+            className={getInputClasses(errors.alternativePhone)}
             placeholder="Enter alternate mobile number"
             disabled={isReadOnly}
           />
-          {errors.alternate_mobile_number && (
-            <p className="mt-1 text-sm text-red-500">{errors.alternate_mobile_number}</p>
+          {errors.alternativePhone && (
+            <p className="mt-1 text-sm text-red-500">{errors.alternativePhone}</p>
           )}
         </div>
 
@@ -168,14 +168,14 @@ logDebug('this is the teams', teams);
             Special Need
           </label>
           <select
-            name="special_need"
-            value={formData.special_need || 'none'}
+            name="specialNeed"
+            value={formData.specialNeed || 'none'}
             onChange={onChange}
             className={getSelectClasses(false)}
             disabled={isReadOnly}
           >
             <option value="none">None</option>
-            <option value="pregnancy">Pregnancy</option>
+            <option value="PREGNANT">Pregnancy</option>
           </select>
         </div>
 
@@ -221,10 +221,10 @@ logDebug('this is the teams', teams);
             </p>
           ) : (
             <select
-              name="department_id"
-              value={formData.department_id || ''}
+              name="departmentId"
+              value={formData.departmentId || ''}
               onChange={onChange}
-              className={getSelectClasses(errors.department_id)}
+              className={getSelectClasses(errors.departmentId)}
               disabled={isReadOnly}
             >
               <option value="">Select Department</option>
@@ -235,8 +235,8 @@ logDebug('this is the teams', teams);
               ))}
             </select>
           )}
-          {errors.department_id && (
-            <p className="mt-1 text-sm text-red-500">{errors.department_id}</p>
+          {errors.departmentId && (
+            <p className="mt-1 text-sm text-red-500">{errors.departmentId}</p>
           )}
         </div>
       </div>
