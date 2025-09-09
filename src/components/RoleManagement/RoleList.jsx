@@ -7,7 +7,7 @@ import RoleCard from './RoleCard';
  * @param {RoleListProps} props - The component props.
  * @returns {JSX.Element} The rendered component.
  */
-function RoleList({ roles, onEdit, onDelete, onDuplicate }) {
+function RoleList({ roles, onEdit, onDelete, onDuplicate, onAssignUsers, onViewAssignedUsers }) {
   if (roles.length === 0) {
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg">
@@ -25,11 +25,12 @@ function RoleList({ roles, onEdit, onDelete, onDuplicate }) {
           onEdit={onEdit}
           onDelete={onDelete}
           onDuplicate={onDuplicate}
+          onAssignUsers={onAssignUsers}
+          onViewAssignedUsers={onViewAssignedUsers}
         />
       ))}
     </div>
   );
-  
 }
 
 export default RoleList;

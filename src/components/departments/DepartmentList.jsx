@@ -1,6 +1,5 @@
 import React from 'react';
 import { Building2, Edit, Trash, History, UserCheck, UserX } from 'lucide-react';
-import Pagination from '../Pagination';
 import { logDebug } from '../../utils/logger';
 
 const DepartmentList = ({
@@ -83,7 +82,7 @@ const DepartmentList = ({
                         title="View Active Employees"
                       >
                         <UserCheck size={14} className="mr-1" />
-                        {department.activeUsers || 0}
+                        {department.active || 0}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -93,7 +92,7 @@ const DepartmentList = ({
                         title="View Inactive Employees"
                       >
                         <UserX size={14} className="mr-1" />
-                        {department.inactiveUsers || 0}
+                        {department.inactiv || 0}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

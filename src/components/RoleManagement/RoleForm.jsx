@@ -9,7 +9,7 @@ const ACTIONS = [
 ];
 
 const RoleForm = ({ isOpen, onClose, onSubmit, allowedModules = [], initialData = null, mode = 'create' }) => {
-  const [formData, setFormData] = useState({ name: '', description: '', permissions: [] });
+  const [formData, setFormData] = useState({ name: '', description: '', permissions: [], isAssignable: true   });
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -17,16 +17,16 @@ const RoleForm = ({ isOpen, onClose, onSubmit, allowedModules = [], initialData 
       setFormData({
         name: initialData.name || '',
         description: initialData.description || '',
-        permissions: initialData.permissions || []
+        permissions: initialData.permissions || [],
+        isAssignable: initialData.isAssignable ?? true  // ✅ keep existing or default true
       });
     } else {
-      setFormData({ name: '', description: '', permissions: [] });
+      setFormData({ name: '', description: '', permissions: [], isAssignable: true });
     }
   }, [initialData, mode]);
 
   // Only show modules that are NOT restricted and filter by search term
-  const modulesToShow = allowedModules
-    .filter(m => !m.isRestricted)
+  const modulesToShow = allowedModules?.filter(m => !m.isRestricted)
     .filter(m => 
       m.moduleKey.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -61,9 +61,25 @@ const RoleForm = ({ isOpen, onClose, onSubmit, allowedModules = [], initialData 
 
   const handleSubmit = e => {
     e.preventDefault();
-    console.log(" this is the role permission daat that is been creating" , formData);
     
-    onSubmit(formData);
+    // Ensure permissions are properly formatted
+    const formattedPermissions = formData.permissions.map(perm => ({
+      moduleKey: perm.moduleKey,
+      canRead: Boolean(perm.canRead),
+      canWrite: Boolean(perm.canWrite),
+      canDelete: Boolean(perm.canDelete)
+    }));
+  
+    const roleData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      isAssignable: formData.isAssignable,
+      permissions: formattedPermissions
+    };
+  
+    console.log("Role data being submitted:", roleData);
+    
+    onSubmit(roleData);
   };
 
   if (!isOpen) return null;
@@ -121,6 +137,18 @@ const RoleForm = ({ isOpen, onClose, onSubmit, allowedModules = [], initialData 
                   placeholder="Brief description of this role"
                 />
               </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="isAssignable"
+                checked={formData.isAssignable}
+                onChange={(e) => setFormData(prev => ({ ...prev, isAssignable: e.target.checked }))}
+                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+              />
+              <label htmlFor="isAssignable" className="text-sm text-gray-700">
+                Role is assignable to users
+              </label>
             </div>
 
             {/* Search Bar */}

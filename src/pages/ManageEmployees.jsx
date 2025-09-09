@@ -29,7 +29,7 @@ const ManageEmployees = () => {
     const ids = state.user.departmentEmployees[depId] || [];
     return ids.map((id) => state.user.employees.byId[id]);
   });
-
+logDebug(" this are the employes in the  manage employes " ,allEmployees)
   useEffect(() => {
     fetchEmployeesByDepartment();
   }, [depId]);
@@ -100,9 +100,9 @@ const ManageEmployees = () => {
       const query = searchTerm.toLowerCase().trim();
       result = result.filter(employee => {
         const nameMatch = employee.name?.toLowerCase().includes(query);
-        const mobileMatch = employee.mobile_number?.toString().includes(query);
+        const mobileMatch = employee.phone?.toString().includes(query);
         const emailMatch = employee.email?.toLowerCase().includes(query);
-        const codeMatch = employee.employee_code?.toLowerCase().includes(query);
+        const codeMatch = employee.userId?.toLowerCase().includes(query);
         
         return nameMatch || mobileMatch || emailMatch || codeMatch;
       });

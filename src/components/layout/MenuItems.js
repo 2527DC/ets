@@ -148,13 +148,13 @@ export const MenuItems = [
   { 
     name: 'Operations', 
     icon: Route, 
-    permissionModule: 'routing_management',
+    permissionModule: 'routing',
     subItems: [
       { 
         path: '/routing', 
         name: 'Routing Management', 
         icon: Route, 
-        permissionModule: 'routing_management' 
+        permissionModule: 'routing' 
       },
       { 
         path: '/tracking', 
