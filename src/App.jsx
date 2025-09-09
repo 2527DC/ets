@@ -21,6 +21,7 @@ import CompanyManagement from "./pages/CompanyManagement";
 import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
 import CompanyDashboard from "./companies/CompanyDashboard";
 import RoleManagement from "./pages/RoleManagement";
+import RouteManagement from "./pages/RouteManagement";
 
 function App() {
 
@@ -139,7 +140,7 @@ function App() {
             <Route path="/department/:depId/employees/:userId/edit" element={<EmployeeForm mode="edit" />} />
             <Route path="/department/:depId/employees/:userId/view" element={<EmployeeForm mode="view" />} />
             <Route path="/tracking" element={<h1> This is the screen of Tracking </h1>} />
-            <Route path="/routing" element={<h1> This is the screen of Routing </h1>} />
+            <Route path="/routing" element={<RouteManagement/>} />
             <Route path="/audit-report" element={<h1> This is the screen of audit-report </h1>} />
           </Route>
         </Route>

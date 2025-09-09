@@ -11,7 +11,7 @@ const initialState = {
     byId: {},
     allIds: []
   },
-  departmentEmployees: {}, // { depId: [userId, userId...] }
+  departmentEmployees: {}, 
   lastFetchedDepId: null
 };
 
@@ -179,6 +179,12 @@ const userSlice = createSlice({
         state.teams.allIds.push(dept.id);
       });
     },
+    updateEmployeeStatus: (state, action) => {
+      const { employeeId, isActive } = action.payload;
+      if (state.employees.byId[employeeId]) {
+        state.employees.byId[employeeId].isActive = isActive;
+      }
+    },
   }
 });
 
@@ -193,7 +199,8 @@ export const {
   removeEmployeeFromTeam,
   moveEmployee,
   setLastFetchedDepId,
-  setDepartmentEmployees
+  setDepartmentEmployees,
+  updateEmployeeStatus
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react';
 import SearchInput from '../components/ui/SearchInput';
 import { logDebug } from '../utils/logger';
 import ToolBar from '../components/ui/ToolBar';
-import { setDepartmentEmployees } from '../redux/features/user/userSlice';
+import { setDepartmentEmployees, updateEmployeeStatus } from '../redux/features/user/userSlice';
 import EmployeeList from '../components/departments/EmployeeList';
 import endpoint from '../Api/Endpoints';
 
@@ -29,7 +29,6 @@ const ManageEmployees = () => {
     const ids = state.user.departmentEmployees[depId] || [];
     return ids.map((id) => state.user.employees.byId[id]);
   });
-logDebug(" this are the employes in the  manage employes " ,allEmployees)
   useEffect(() => {
     fetchEmployeesByDepartment();
   }, [depId]);
@@ -43,7 +42,7 @@ logDebug(" this are the employes in the  manage employes " ,allEmployees)
 
     try {
       setLoading(true);
-      const response = await API_CLIENT.get(`${endpoint.getEmployesByDepartment}/${depId}?is_active=${isActive}`);
+      const response = await API_CLIENT.get(`${endpoint.getEmployesByDepartment}/${depId}?isActive=${isActive}`);
       const { employees, departmentId } = response.data;
       logDebug("Fetched employees:", employees ,departmentId);
 
@@ -74,13 +73,13 @@ logDebug(" this are the employes in the  manage employes " ,allEmployees)
   };
 
   const handleView = (employee) => {
-    navigate(`/employees/${employee.employee_code}/view`, {
+    navigate(`/department/${employee.departmentId}/employees/${employee.employee_code}/view`, {
       state: { employee, fromChild: true },
     });
   };
-
+// :depId/employees/:userId/view
   const handleEdit = (employee) => {
-    navigate(`/employees/${employee.employee_code}/edit`, {
+    navigate(`/department/${employee.departmentId}/employees/${employee.employee_code}/edit`, {
       state: { employee },
     });
   };
@@ -111,6 +110,27 @@ logDebug(" this are the employes in the  manage employes " ,allEmployees)
     return result;
   }, [allEmployees, searchTerm]);
 
+// In your parent component
+
+
+const handleStatusChange = async (employeeId, newIsActive) => {
+  try {
+    // API call here (commented out for now)
+    await API_CLIENT.patch(`api/users/status-update/${employeeId}`, null, { params: { isActive: newIsActive } });
+
+    // Update Redux state
+    dispatch(updateEmployeeStatus({ employeeId, isActive: newIsActive }));
+
+    // Success toast
+    toast.success(`Employee ${newIsActive ? "activated" : "deactivated"} successfully`);
+  } catch (error) {
+    console.error("Failed to update status:", error);
+    toast.error("Failed to update status");
+    throw error;
+  }
+};
+
+
   return (
     <div>
       <ToolBar
@@ -132,10 +152,7 @@ logDebug(" this are the employes in the  manage employes " ,allEmployees)
       />
       
       <EmployeeList
-      onStatusChange={(employeeId, newStatus) => {
-        // Update the employee status in your state/API
-        console.log(`Employee ${employeeId} status changed to ${newStatus}`);
-      }}
+      onStatusChange={handleStatusChange}
         employees={filteredEmployees}
         loading={loading}
         error={error}

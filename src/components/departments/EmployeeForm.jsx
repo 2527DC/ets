@@ -19,19 +19,18 @@ const initialFormData = {
   name: '',
   email: '',
   gender: '',
-  employee_code:"",
-  mobile_number: '',
-  alternate_mobile_number: '',
+  userId: '',
+  phone: null,
+  alternativePhone: null,
   address: '',
   landmark: '',
   latitude: null,
   longitude: null,
-  distance_from_company: '',
-  special_need: "none",
+  special_need: null,
   special_need_start_date: null,
   special_need_end_date: null,
-  office: ""
 };
+
 
 const EmployeeForm = ({ mode = 'create' }) => {
   const { state } = useLocation();
@@ -121,7 +120,6 @@ const EmployeeForm = ({ mode = 'create' }) => {
             landmark: employee.landmark || '',
             latitude: employee.latitude || null,
             longitude: employee.longitude || null,
-            distance_from_company: employee.distance_from_company || '',
             office: employee.office || '',
             subscribe_via_email: employee.subscribe_via_email || false,
             subscribe_via_sms: employee.subscribe_via_sms || false,

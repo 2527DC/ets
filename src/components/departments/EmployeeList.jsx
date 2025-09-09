@@ -1,5 +1,7 @@
-import { Edit, Eye, Pencil, ScanEye } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Edit, Eye } from 'lucide-react';
 import { logDebug } from '../../utils/logger';
+import ConfirmationModal from '../modals/ConfirmationModal';
 
 const EmployeeList = ({
   employees = [],
@@ -10,12 +12,63 @@ const EmployeeList = ({
   onRowClick,
   onEdit,
   onView,
-  onStatusChange, // New prop for handling status changes
+  onStatusChange,
   hasActiveSearch = false
 }) => {
-logDebug(" this are the employes in the employe list ",employees)
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+
+  const handleStatusToggle = (employeeId, currentIsActive) => {
+    const newIsActive = !currentIsActive;
+    const employee = employees.find(emp => emp.id === employeeId);
+    
+    setPendingStatusChange({
+      employeeId,
+      currentIsActive,
+      newIsActive,
+      employeeName: employee?.name || 'this employee'
+    });
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
+    
+    setIsProcessing(true);
+    try {
+      await onStatusChange?.(pendingStatusChange.employeeId, pendingStatusChange.newIsActive);
+      setShowConfirmation(false);
+      setPendingStatusChange(null);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      // You might want to show an error message here
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCancelStatusChange = () => {
+    setShowConfirmation(false);
+    setPendingStatusChange(null);
+  };
+logDebug("pendingStatusChange is " ,pendingStatusChange)
   return (
     <div className="space-y-4">
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        show={showConfirmation}
+        title="Confirm Status Change"
+        message={
+          pendingStatusChange 
+            ? `Are you sure you want to ${pendingStatusChange.newIsActive ? 'activate' : 'deactivate'} ${pendingStatusChange.employeeName}?`
+            : ''
+        }
+        onConfirm={handleConfirmStatusChange}
+        onCancel={handleCancelStatusChange}
+      />
+
       <div className="overflow-x-auto border rounded-xl">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead className="bg-gray-100 text-gray-700 uppercase text-sm font-medium">
@@ -102,11 +155,12 @@ logDebug(" this are the employes in the employe list ",employees)
                       <input 
                         type="checkbox" 
                         className="sr-only peer" 
-                        checked={employee.isActive ===true}
+                        checked={employee.isActive === true}
                         onChange={(e) => {
                           e.stopPropagation();
-                          onStatusChange?.(employee.id, e.target.checked ? 'active' : 'inactive');
+                          handleStatusToggle(employee.userId, employee.isActive);
                         }}
+                        disabled={isProcessing}
                       />
                       <div className={`w-11 h-6 rounded-full peer ${
                         employee.isActive === true

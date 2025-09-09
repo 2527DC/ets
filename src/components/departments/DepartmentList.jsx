@@ -92,7 +92,7 @@ const DepartmentList = ({
                         title="View Inactive Employees"
                       >
                         <UserX size={14} className="mr-1" />
-                        {department.inactiv || 0}
+                        {department.inactive || 0}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
