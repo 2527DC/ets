@@ -22,7 +22,7 @@ const EntityModal = ({
   });
   const [errors, setErrors] = useState({});
 
-  // Fetch modules only if not already loaded
+
   useEffect(() => {
     if (isOpen && modules.length === 0 && !loading && mode === 'create') {
       dispatch(fetchModulesThunk());
@@ -37,8 +37,8 @@ useEffect(() => {
     setFormData({
       company: {
         ...entityData,
-        imageUrl: entityData.logo || '',       // map backend field
-        websiteUrl: entityData.website || ''   // map backend field
+        imageUrl: entityData.logo || '',       
+        websiteUrl: entityData.website || ''  
       },
       vendor: {
         ...entityData.vendor,
@@ -229,6 +229,19 @@ useEffect(() => {
                 )}
               </div>
             </div>
+             <div className="md:col-span-2">
+                <label className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={formData[entityType]?.isActive ?? false} 
+                    onChange={(e) => handleInputChange(entityType, "isActive", e.target.checked)}
+                    className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-base font-medium text-gray-800">
+                    {formData[entityType]?.isActive ? "Active" : "Inactive"}
+                  </span>
+                </label>
+              </div>
           </div>
 
           {/* Admin User */}

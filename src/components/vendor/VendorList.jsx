@@ -1,76 +1,34 @@
-import React, { useState } from 'react';
-import { Search, Filter, Plus, Truck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Search, Truck } from 'lucide-react';
 import VendorCard from './VendorCard';
+import { fetchVendorsThunk } from '../../redux/features/vendors/vendorThunk';
 
-// Static data
-const vendorsData = [
-  {
-    id: 101,
-    name: 'City Truckers',
-    email: 'dispatch@citytruckers.com',
-    phone: '+1 (555) 111-2222',
-    address: '100 Truckers Lane, Dallas, TX 75201',
-    fleetSize: 45,
-    status: 'Active',
-    joinedDate: 'Dec 1, 2023',
-    companies: [1, 2]
-  },
-  {
-    id: 102,
-    name: 'Regional Haulers',
-    email: 'contact@regionalhaulers.com',
-    phone: '+1 (555) 333-4444',
-    address: '200 Haulers Road, Denver, CO 80201',
-    fleetSize: 28,
-    status: 'Active',
-    joinedDate: 'Jan 10, 2024',
-    companies: [1,2,3,4]
-  },
-  {
-    id: 103,
-    name: 'Express Movers',
-    email: 'info@expressmovers.com',
-    phone: '+1 (555) 555-6666',
-    address: '300 Express Way, Phoenix, AZ 85001',
-    fleetSize: 35,
-    status: 'Active',
-    joinedDate: 'Feb 15, 2024',
-    companies: [3]
-  },
-  {
-    id: 104,
-    name: 'Heavy Load Specialists',
-    email: 'heavy@specialists.com',
-    phone: '+1 (555) 777-8888',
-    address: '400 Heavy Lane, Seattle, WA 98101',
-    fleetSize: 12,
-    status: 'Active',
-    joinedDate: 'Mar 20, 2024',
-    companies: []
-  }
-];
+const VendorList = ({ onEditVendor }) => {
+  const dispatch = useDispatch();
+  const { data: vendors = [], loading, error } = useSelector(state => state.vendor);
 
-const companiesData = [
-  { id: 1, name: 'ABC Logistics', status: 'Active' },
-  { id: 2, name: 'XYZ Transport Solutions', status: 'Active' },
-  { id: 3, name: 'Global Shipping Co.', status: 'Active' },
-  { id: 4, name: 'Fast Delivery Inc.', status: 'Pending' }
-];
-
-const VendorList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredVendors = vendorsData.filter(vendor => {
-    const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vendor.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+useEffect(() => {
+  if (!vendors || vendors.length === 0) {
+    dispatch(fetchVendorsThunk());
+  }
+}, [dispatch, vendors]);
+
+  // Filter vendors by search term and status
+  const filteredVendors = vendors.filter(vendor => {
+    const matchesSearch =
+      vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendor.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || vendor.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   return (
     <div className="space-y-6">
-
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -95,34 +53,38 @@ const VendorList = () => {
         </select>
       </div>
 
+      {/* Loading/Error */}
+      {loading && <p>Loading vendors...</p>}
+      {error && <p className="text-red-500">Error: {error}</p>}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-2xl font-bold text-green-600">{vendorsData.length}</div>
+          <div className="text-2xl font-bold text-green-600">{vendors.length}</div>
           <div className="text-sm text-gray-600">Total Vendors</div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-2xl font-bold text-blue-600">
-            {vendorsData.filter(v => v.status === 'Active').length}
+            {vendors.filter(v => v.status === 'Active').length}
           </div>
           <div className="text-sm text-gray-600">Active</div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-2xl font-bold text-yellow-600">
-            {vendorsData.filter(v => v.status === 'Pending').length}
+            {vendors.filter(v => v.status === 'Pending').length}
           </div>
           <div className="text-sm text-gray-600">Pending</div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-2xl font-bold text-red-600">
-            {vendorsData.filter(v => v.status === 'Suspended').length}
+            {vendors.filter(v => v.status === 'Suspended').length}
           </div>
           <div className="text-sm text-gray-600">Suspended</div>
         </div>
       </div>
 
       {/* Vendors Grid */}
-      {filteredVendors.length === 0 ? (
+      {filteredVendors.length === 0 && !loading ? (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <Truck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-600">No vendors found</h3>
@@ -134,7 +96,7 @@ const VendorList = () => {
             <VendorCard
               key={vendor.id}
               vendor={vendor}
-              companies={companiesData}
+              onEdit={() => onEditVendor?.(vendor)} // ✅ pass edit handler
             />
           ))}
         </div>

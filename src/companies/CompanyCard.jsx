@@ -23,8 +23,8 @@ const CompanyCard = ({ company, onEditCompany = () => {}, onAssignVendor = () =>
             <Building2 className="w-6 h-6" />
             <h3 className="text-lg font-semibold truncate">{company.name}</h3>
           </div>
-          <span className="px-2 py-1 bg-blue-800 text-xs rounded-full">
-            {company.status || "Active"}
+          <span className={`px-2 py-1 text-xs rounded-full ${company.isActive ? "bg-blue-800 text-white" : "bg-gray-400 text-white"  }`}>
+            {company.isActive ? "Active" : "Inactive"}
           </span>
         </div>
       </div>
@@ -97,7 +97,7 @@ const CompanyCard = ({ company, onEditCompany = () => {}, onAssignVendor = () =>
       {/* Footer */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
         <span className="text-xs text-gray-500 whitespace-nowrap">
-          Created: {company.createdDate}
+          Created: {company.createdAt ? new Date(company.createdAt).toLocaleDateString() : 'N/A'}
         </span>
         <div className="flex space-x-2">
           {/* ✅ Edit triggers parent with company data */}

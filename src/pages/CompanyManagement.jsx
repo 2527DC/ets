@@ -17,10 +17,11 @@ const CompanyManagement = () => {
   const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
   const [selectedEntity, setSelectedEntity] = useState(null);
 
-  // Fetch companies on mount
-  useEffect(() => {
+useEffect(() => {
+  if (!companies || companies.length === 0) {
     dispatch(fetchCompaniesThunk());
-  }, [dispatch]);
+  }
+}, [dispatch, companies]);
 
   // Open modal in create mode
   const handleCreate = () => {
@@ -40,13 +41,13 @@ const CompanyManagement = () => {
   const handleSubmit = async (formData) => {
     if (modalMode === 'create') {
       // Create new company
-      const resultAction = await dispatch(createCompanyThunk(formData));
+      const resultAction =  dispatch(createCompanyThunk(formData));
       if (!createCompanyThunk.fulfilled.match(resultAction)) {
         console.error('Failed to create company:', resultAction.payload);
       }
     } else if (modalMode === 'edit' && selectedEntity) {
       // Update existing company
-      const resultAction = await dispatch(updateCompanyThunk({ companyId: selectedEntity.id, formData }));
+      const resultAction =  dispatch(updateCompanyThunk({ companyId: selectedEntity.id, formData }));
       if (!updateCompanyThunk.fulfilled.match(resultAction)) {
         console.error('Failed to update company:', resultAction.payload);
       }
