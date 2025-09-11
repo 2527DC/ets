@@ -23,6 +23,7 @@ import CompanyDashboard from "./companies/CompanyDashboard";
 import RoleManagement from "./pages/RoleManagement";
 import RouteManagement from "./pages/RouteManagement";
 import Schedulemanagement from "./pages/Schedulemanagement";
+import ScheduledBookingsCopy from "./components/RouteManagement/ScheduledBookingsCopy";
 
 function App() {
 
@@ -134,6 +135,7 @@ function App() {
             <Route path="/manage-drivers" element={<DriverManagement/>} />
             <Route path="/manage-company" element={<ManageDepartment />} />
             <Route path="/scheduling" element={<Schedulemanagement/>} />
+            <Route path="/cutoff-settings" element={<h1> this is the cutoff window</h1>} />
             <Route path="/manage-vendors" element={<VendorManagement />} />
             <Route path="/manage-vehicles" element={<VehicleManagement />} />
             <Route path="/employee/create-employee" element={<EmployeeForm />} />
@@ -142,6 +144,7 @@ function App() {
             <Route path="/department/:depId/employees/:userId/view" element={<EmployeeForm mode="view" />} />
             <Route path="/tracking" element={<h1> This is the screen of Tracking </h1>} />
             <Route path="/routing" element={<RouteManagement/>} />
+            <Route path="/pra" element={<ScheduledBookingsCopy/>} />
             <Route path="/audit-report" element={<h1> This is the screen of audit-report </h1>} />
           </Route>
         </Route>

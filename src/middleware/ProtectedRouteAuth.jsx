@@ -1,14 +1,15 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useSelector } from "react-redux";
+import { logDebug } from "../utils/logger";
 
 const ProtectedRouteAuth = ({ type, redirectPath, authRedirectPath }) => {
   const token = Cookies.get("auth_token");
   const location = useLocation();
-  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, authloading } = useSelector((state) => state.auth);
 
   // ⏳ If still loading → always wait
-  if (loading) {
+  if (authloading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <h2 className="text-xl font-semibold animate-pulse">Loading... please wait</h2>
@@ -16,12 +17,9 @@ const ProtectedRouteAuth = ({ type, redirectPath, authRedirectPath }) => {
     );
   }
 
-  if(loading){
-  
-    if (!token) {
+    if (!token ||!isAuthenticated && authloading) {
       return <Navigate to={redirectPath} replace state={{ from: location }} />;
     }
-  }
  
 
   // 🚨 Role mismatch handling

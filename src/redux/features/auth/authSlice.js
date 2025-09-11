@@ -10,7 +10,6 @@ const getTokenExpiration = (token) => {
   try {
     const decoded = jwtDecode(token);
     if (decoded && decoded.exp) {
-      // Convert expiration time (seconds since epoch) to Date object
       return new Date(decoded.exp * 1000);
     }
     return null;
@@ -56,6 +55,7 @@ const initialState = {
   loading: false,
   error: null,
   isAuthenticated: false,
+  authloading:false,
   lastLogin: null
 };
 
@@ -94,6 +94,9 @@ const authSlice = createSlice({
     // Add a reducer to explicitly set loading state
     setLoading: (state, action) => {
       state.loading = action.payload;
+    }
+    ,   setAuthLoading: (state, action) => {
+      state.authloading = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -186,7 +189,8 @@ export const {
   setAuthCredentials,
   setAuthFromToken,
   clearError,
-  setLoading
+  setLoading,
+  setAuthLoading
 } = authSlice.actions;
 
 // Selectors
@@ -201,21 +205,22 @@ export const selectLastLogin = (state) => state.auth.lastLogin;
 // Utility function to initialize auth state
 export const initializeAuth = () => async (dispatch) => {
   const token = Cookies.get("auth_token");
-  
+  dispatch(setAuthLoading(true));
   if (!token) {
+    
     // No token → reset auth state
     dispatch(resetAuthState());
     return;
+  }else{
+  dispatch(setAuthLoading(false));
+
   }
+
+  
 
   try {
     // Verify token is still valid
-    const expiration = getTokenExpiration(token);
-    if (expiration && expiration < new Date()) {
-      Cookies.remove('auth_token');
-      dispatch(resetAuthState());
-      return;
-    }
+   
 
     // Decode token and set basic user info
     const decoded = jwtDecode(token);
@@ -239,10 +244,13 @@ export const initializeAuth = () => async (dispatch) => {
             permissions,
           })
         );
+  dispatch(setAuthLoading(false));
+
       } catch (error) {
         console.error("Failed to parse stored permissions:", error);
         // If parsing fails, fetch from server
         await dispatch(fetchUserFromToken());
+
       }
     } else {
       // If no session storage → fetch from server
@@ -250,8 +258,7 @@ export const initializeAuth = () => async (dispatch) => {
     }
   } catch (error) {
     console.error("Failed to initialize auth state:", error);
-    // Set loading to false even on error
-    dispatch(setLoading(false));
+    dispatch(setAuthLoading(false));
     dispatch(resetAuthState());
   }
 };

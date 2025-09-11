@@ -4,7 +4,8 @@ import ToolBar from "../ui/ToolBar";
 import { Plus, Edit, Trash2, Clock, ToggleLeft, ToggleRight } from "lucide-react";
 import ShiftForm from "./ShiftForm";
 import ConfirmationModal from "../modals/ConfirmationModal";
-
+import  { useSelector } from "react-redux";
+import { selectAllShiftCategories, selectAllShifts } from "../../redux/features/shift/shiftSlice";
 const ShiftManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -13,95 +14,17 @@ const ShiftManagement = () => {
   const [shiftToDelete, setShiftToDelete] = useState(null);
   const [shiftToToggle, setShiftToToggle] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const shifts = useSelector(selectAllShifts);
+  const shiftCategories = useSelector(selectAllShiftCategories);
+  const categories = useSelector((state)=> state.shift.shiftCategories.byId);
 
-  // Dummy shift categories
-  const [shiftCategories] = useState([
-    { id: "1", name: "Morning" },
-    { id: "2", name: "Evening" },
-    { id: "3", name: "Night" },
-    { id: "4", name: "Afternoon" },
-    { id: "5", name: "Flexi" }
-  ]);
 
-  // Dummy shifts data matching your structure
-  const [shifts, setShifts] = useState([
-    {
-      id: 1,
-      shiftType: "LOGIN",
-      hour: 9,
-      minute: 30,
-      shiftCategoryId: 1,
-      createdAt: "2025-09-09T17:00:26.710Z",
-      updatedAt: "2025-09-09T17:00:26.710Z",
-      companyId: 3,
-      isActive: true,
-      shiftCategory: {
-        id: 1,
-        name: "Morning Shift"
-      }
-    },
-    {
-      id: 2,
-      shiftType: "LOGOUT",
-      hour: 18,
-      minute: 0,
-      shiftCategoryId: 1,
-      createdAt: "2025-09-09T17:00:26.710Z",
-      updatedAt: "2025-09-09T17:00:26.710Z",
-      companyId: 3,
-      isActive: true,
-      shiftCategory: {
-        id: 1,
-        name: "Morning Shift"
-      }
-    },
-    {
-      id: 3,
-      shiftType: "LOGIN",
-      hour: 14,
-      minute: 0,
-      shiftCategoryId: 2,
-      createdAt: "2025-09-09T17:00:26.710Z",
-      updatedAt: "2025-09-09T17:00:26.710Z",
-      companyId: 3,
-      isActive: true,
-      shiftCategory: {
-        id: 2,
-        name: "Evening Shift"
-      }
-    },
-    {
-      id: 4,
-      shiftType: "LOGOUT",
-      hour: 22,
-      minute: 0,
-      shiftCategoryId: 2,
-      createdAt: "2025-09-09T17:00:26.710Z",
-      updatedAt: "2025-09-09T17:00:26.710Z",
-      companyId: 3,
-      isActive: true,
-      shiftCategory: {
-        id: 2,
-        name: "Evening Shift"
-      }
-    },
-    {
-      id: 5,
-      shiftType: "LOGIN",
-      hour: 22,
-      minute: 0,
-      shiftCategoryId: 3,
-      createdAt: "2025-09-09T17:00:26.710Z",
-      updatedAt: "2025-09-09T17:00:26.710Z",
-      companyId: 3,
-      isActive: false,
-      shiftCategory: {
-        id: 3,
-        name: "Night Shift"
-      }
-    }
-  ]);
 
+  const [shift, setShifts] = useState([]);
+
+
+
+  
   const handleAddClick = () => {
     setEditingShift(null);
     setIsModalOpen(true);
@@ -172,15 +95,15 @@ const ShiftManagement = () => {
   };
 
   const formatTime = (hour, minute) => {
-    const h = hour.toString().padStart(2, '0');
-    const m = minute.toString().padStart(2, '0');
+    const h = hour?.toString()?.padStart(2, '0');
+    const m = minute?.toString()?.padStart(2, '0');
     return `${h}:${m}`;
   };
 
   // Filter shifts based on search term
   const filteredShifts = shifts.filter(shift =>
-    shift.shiftType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shift.shiftCategory?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    shift?.shiftType?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+    shift?.shiftCategory?.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
     formatTime(shift.hour, shift.minute).includes(searchTerm)
   );
 
@@ -254,7 +177,7 @@ const ShiftManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-600">
-                        {shift.shiftCategory?.name || 'N/A'}
+                        {categories[ shift.shiftCategoryId].name|| 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

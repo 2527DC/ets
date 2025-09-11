@@ -200,7 +200,7 @@ export const MenuItems = [
     path: '/cutoff-settings', 
     name: 'Cutoff Settings', 
     icon: Target, 
-    permissionModule: 'cutoff_window' 
+    permissionModule: 'cutoff_management' 
   },
   // ================================
   // 🔐 ROLE MANAGEMENT (Additional)

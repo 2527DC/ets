@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ToolBar from "../ui/ToolBar";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Modal from "../modals/Modal";
 import CategoryForm from "./CategoryForm";
 import ConfirmationModal from "../modals/ConfirmationModal";
-// import ConfirmationModal from "../modals/ConfirmationModal";
-
+import { API_CLIENT } from "../../Api/API_Client";
+import { logDebug } from "../../utils/logger";
 const ShiftCategoryManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -14,14 +14,18 @@ const ShiftCategoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Sample data - replace with actual API data
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Morning Shift", description: "6 AM to 2 PM shift" },
-    { id: 2, name: "Evening Shift", description: "2 PM to 10 PM shift" },
-    { id: 3, name: "Night Shift", description: "10 PM to 6 AM shift" },
-    { id: 4, name: "Flexi Shift", description: "Flexible working hours" },
-    { id: 5, name: "Part-time", description: "Reduced working hours" }
-  ]);
+  const [categories, setCategories] = useState([]);
 
+
+  const fetchcompanyShiftCategory = async () => {
+    const response = await API_CLIENT.get('api/shifts/categories');
+    setCategories(response.data.data.categories);
+  };
+  
+  useEffect(() => {
+    fetchcompanyShiftCategory();
+  }, []);
+  
   const handleAddClick = () => {
     setEditingCategory(null);
     setIsModalOpen(true);

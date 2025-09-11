@@ -9,8 +9,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { MenuItems, generateMenuItems } from './MenuItems';
-import { logout } from '../../redux/features/auth/authSlice';
+import { generateMenuItems } from './MenuItems';
+import { logout} from '../../redux/features/auth/authSlice';
 
 // Skeleton Loading Components
 const SkeletonMenuItem = ({ isOpen }) => (
@@ -41,43 +41,23 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState({});
   const [isMobile, setIsMobile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userPermissions, setUserPermissions] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  
+  // Get auth state from Redux
+  const { permissions, loading: authLoading, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Load permissions from session storage and generate menu items
+  // Generate menu items based on permissions
   useEffect(() => {
-    const storedPermissions = sessionStorage.getItem('userPermissions');
-    
-    if (storedPermissions) {
-      try {
-        const parsedPermissions = JSON.parse(storedPermissions);
-
-        const permissions = parsedPermissions.permissions || [];
-    console.log(" this is the permissionfrom the local storage " ,permissions);
-
-        setUserPermissions(permissions);
-        
-        // Generate menu items based on permissions
-        const filteredMenuItems = generateMenuItems(permissions);
-        setMenuItems(filteredMenuItems);
-      
-      } catch (error) {
-        console.error('Error parsing user permissions:', error);
-        setUserPermissions([]);
-        setMenuItems([]);
-      }
+    if (permissions && permissions.length > 0) {
+      const filteredMenuItems = generateMenuItems(permissions);
+      setMenuItems(filteredMenuItems);
     }
-  }, []);
+  }, [permissions]);
 
   const handleLogout = () => {
-    // Clear session storage on logout
-    sessionStorage.removeItem("userPermissions");
     dispatch(logout());
-
-    // Redirect to login
     navigate("/", { replace: true });
   };
 
@@ -93,16 +73,6 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, [setIsPinned]);
-
-  // Simulate loading state
-  useEffect(() => {
-    if (userPermissions.length > 0) {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [userPermissions]);
 
   const toggleDropdown = (menuName) => {
     setOpenDropdown((prev) => ({
@@ -141,6 +111,9 @@ const Sidebar = ({ isOpen, setIsOpen, isPinned, setIsPinned }) => {
 
   const sidebarWidth = isOpen ? 'w-sidebar' : 'w-sidebar-collapsed';
   const sidebarClass = `h-screen ${sidebarWidth} bg-gradient-to-b from-sidebar-primary-900 via-sidebar-primary-800 to-sidebar-primary-900 text-white flex flex-col fixed left-0 transition-all duration-300 ease-in-out z-50 shadow-sidebar border-r border-sidebar-primary-200/30`;
+
+  // Show loading state if auth is still loading or user is not authenticated
+  const isLoading = authLoading || !isAuthenticated || !permissions;
 
   return (
     <aside

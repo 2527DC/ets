@@ -1,9 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShiftManagement from "../components/Schedulemanagement/ShiftManagement";
 import ShiftCategoryManagement from "../components/Schedulemanagement/ShiftCategoryManagement";
+import { useDispatch } from "react-redux";
+import { API_CLIENT } from "../Api/API_Client";
+import { logDebug } from "../utils/logger";
+import { setShifts } from "../redux/features/shift/shiftSlice";
 
 const Schedulemanagement =()=>{
-  const [activeTab, setActiveTab] = useState("shift"); // default tab
+  const [activeTab, setActiveTab] = useState("shift"); 
+
+  // const [shifts, setShifts] = useState([]);
+const dispatch = useDispatch();
+  const fetchcompanyShifts = async() => {
+
+    const response = await API_CLIENT.get('api/shifts/get-shifts');
+    logDebug("Fetched Shifts:", response.data);
+    dispatch(setShifts(response.data.shifts));
+  };
+
+
+  useEffect(()=>{
+    fetchcompanyShifts()
+  },[])
+
+
 
     return(
         <div>
