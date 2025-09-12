@@ -32,8 +32,9 @@ export const assignVendorsToCompanyThunk = createAsyncThunk(
       // ✅ Refetch vendors for this company
       dispatch(fetchVendorsByCompanyThunk(companyId));
 
-      // ✅ Refetch companies for the assigned vendors so VendorCard updates
-      vendorIds.forEach((vendorId) => {
+      // DEDUPLICATION: Remove duplicate vendor IDs before dispatching
+      const uniqueVendorIds = [...new Set(vendorIds)];
+      uniqueVendorIds.forEach((vendorId) => {
         dispatch(fetchCompaniesByVendorThunk(vendorId));
       });
 
@@ -73,7 +74,9 @@ export const assignCompaniesToVendorThunk = createAsyncThunk(
       dispatch(fetchCompaniesByVendorThunk(vendorId));
 
       // ✅ Refetch vendors for affected companies so CompanyCard updates
-      companyIds.forEach((companyId) => {
+      // DEDUPLICATION: Remove duplicate company IDs before dispatching
+      const uniqueCompanyIds = [...new Set(companyIds)];
+      uniqueCompanyIds.forEach((companyId) => {
         dispatch(fetchVendorsByCompanyThunk(companyId));
       });
 

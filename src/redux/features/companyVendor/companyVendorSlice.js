@@ -17,7 +17,12 @@ const initialState = {
 const companyVendorSlice = createSlice({
   name: "companyVendor",
   initialState,
-  reducers: {},
+  reducers: {
+    // Optional: Add a reset error action if needed
+    clearError: (state) => {
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     // ---------------- Fetch vendors by company ----------------
     builder
@@ -35,7 +40,10 @@ const companyVendorSlice = createSlice({
       .addCase(fetchVendorsByCompanyThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        if (action.meta.arg) state.vendorsByCompany[action.meta.arg] = [];
+        // Set empty array for the failed company fetch
+        if (action.meta.arg) {
+          state.vendorsByCompany[action.meta.arg] = [];
+        }
       });
 
     // ---------------- Assign vendors to company ----------------
@@ -60,19 +68,23 @@ const companyVendorSlice = createSlice({
 
     // ---------------- Fetch companies by vendor ----------------
     builder
-         .addCase(fetchCompaniesByVendorThunk.pending, (state) => {
+      .addCase(fetchCompaniesByVendorThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCompaniesByVendorThunk.fulfilled, (state, action) => {
+        state.loading = false; // ✅ Added missing loading reset
         const { vendorId, data } = action.payload;
-        state.companiesByVendor[vendorId] = data; // ✅ This is key
-        state.loading = false;
+        state.companiesByVendor[vendorId] = data;
       })
       .addCase(fetchCompaniesByVendorThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch companies';
-      })
+        // Set empty array for the failed vendor fetch
+        if (action.meta.arg) {
+          state.companiesByVendor[action.meta.arg] = [];
+        }
+      });
 
     // ---------------- Assign companies to vendor ----------------
     builder
@@ -84,7 +96,7 @@ const companyVendorSlice = createSlice({
         state.assigning = false;
         const { vendorId, data } = action.payload;
 
-        // ✅ Use full company objects returned by API
+        // Use full company objects returned by API
         state.companiesByVendor[vendorId] = Array.isArray(data?.companies)
           ? data.companies
           : [];
@@ -96,4 +108,5 @@ const companyVendorSlice = createSlice({
   },
 });
 
+export const { clearError } = companyVendorSlice.actions;
 export default companyVendorSlice.reducer;
