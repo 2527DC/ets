@@ -38,23 +38,25 @@ useEffect(() => {
   };
 
   // Handle form submission
-  const handleSubmit = async (formData) => {
+ const handleSubmit = async (formData) => {
+  try {
     if (modalMode === 'create') {
-      // Create new company
-      const resultAction =  dispatch(createCompanyThunk(formData));
-      if (!createCompanyThunk.fulfilled.match(resultAction)) {
-        console.error('Failed to create company:', resultAction.payload);
-      }
+      // Wait for the thunk to finish
+      const result = await dispatch(createCompanyThunk(formData)).unwrap();
+      console.log('Created company:', result);
     } else if (modalMode === 'edit' && selectedEntity) {
-      // Update existing company
-      const resultAction =  dispatch(updateCompanyThunk({ companyId: selectedEntity.id, formData }));
-      if (!updateCompanyThunk.fulfilled.match(resultAction)) {
-        console.error('Failed to update company:', resultAction.payload);
-      }
+      const result = await dispatch(
+        updateCompanyThunk({ companyId: selectedEntity.id, formData })
+      ).unwrap();
+      console.log('Updated company:', result);
     }
 
     setIsModalOpen(false);
-  };
+  } catch (error) {
+    console.error('Failed to save company:', error);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

@@ -28,8 +28,6 @@ export const createCompanyThunk = createAsyncThunk(
   async (formData, { rejectWithValue, dispatch }) => {
     try {
       const response = await createCompanyApi(formData);
-      console.log("Created company:", response.data);
-
       dispatch(fetchCompaniesThunk());
 
       return response.data; // newly created company

@@ -31,12 +31,14 @@ const CompanyCard = ({ company, onEditCompany }) => {
 
   const [isAssignOpen, setAssignOpen] = useState(false);
 
+
   // Fetch assigned vendors if not already loaded
-  useEffect(() => {
-    if (company?.id && !companyVendorState.vendorsByCompany?.[company.id]) {
-      dispatch(fetchVendorsByCompanyThunk(company.id));
-    }
-  }, [company?.id, dispatch, companyVendorState.vendorsByCompany]);
+useEffect(() => {
+  if (company?.id && !companyVendorState.vendorsByCompany[company.id]) {
+    dispatch(fetchVendorsByCompanyThunk(company.id));
+  }
+}, [company?.id, dispatch]); 
+
 
   // Open modal and ensure all vendors loaded
   const handleOpenAssign = () => {
