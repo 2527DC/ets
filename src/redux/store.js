@@ -6,6 +6,7 @@ import vendorReducer from "./features/vendors/vendorSlice";
 import driverReducer from "./features/drivers/driverSlice";
 import companyReducer from "./features/company/companyslice";
 import moduleReducer from "./features/Permissions/permisssionsSlice";
+import companyVendorReducer from  "./features/companyVendor/companyVendorSlice"
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     driver: driverReducer,
     company: companyReducer, 
     modules: moduleReducer,
+    companyVendor:companyVendorReducer
   },
 });
 

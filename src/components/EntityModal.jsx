@@ -21,13 +21,14 @@ const EntityModal = ({
     permissions: []
   });
   const [errors, setErrors] = useState({});
+const [hasFetchedModules, setHasFetchedModules] = useState(false);
 
-
-  useEffect(() => {
-    if (isOpen && modules.length === 0 && !loading && mode === 'create') {
-      dispatch(fetchModulesThunk());
-    }
-  }, [isOpen, modules.length, loading, dispatch, mode]);
+useEffect(() => {
+  if (isOpen && !hasFetchedModules && !loading && mode === 'create') {
+    dispatch(fetchModulesThunk());
+    setHasFetchedModules(true); // mark that fetch was attempted
+  }
+}, [isOpen, hasFetchedModules, loading, dispatch, mode]);
 
   // Initialize form data when modal opens or entityData changes
 useEffect(() => {

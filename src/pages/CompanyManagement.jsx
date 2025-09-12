@@ -18,10 +18,10 @@ const CompanyManagement = () => {
   const [selectedEntity, setSelectedEntity] = useState(null);
 
 useEffect(() => {
-  if (!companies || companies.length === 0) {
+  if (companies.length === 0) {
     dispatch(fetchCompaniesThunk());
   }
-}, [dispatch, companies]);
+}, [dispatch]);
 
   // Open modal in create mode
   const handleCreate = () => {

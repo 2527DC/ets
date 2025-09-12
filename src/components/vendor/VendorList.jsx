@@ -13,10 +13,10 @@ const VendorList = ({ onEditVendor }) => {
 
 
 useEffect(() => {
-  if (!vendors || vendors.length === 0) {
+  if (vendors.length === 0) {
     dispatch(fetchVendorsThunk());
   }
-}, [dispatch, vendors]);
+}, [dispatch]);
 
   // Filter vendors by search term and status
   const filteredVendors = vendors.filter(vendor => {
