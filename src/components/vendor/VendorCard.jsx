@@ -16,24 +16,41 @@ const VendorCard = ({ vendor = {}, onEdit }) => {
   const allCompanies = useMemo(() => companyState.data || [], [companyState.data]);
 
   // Companies assigned to this vendor
-  const assignedCompanies = useMemo(() => companyVendorState.companiesByVendor?.[vendor.id] || [], [
-    companyVendorState.companiesByVendor,
-    vendor.id,
-  ]);
+  const assignedCompanies = useMemo(() => 
+    companyVendorState.companiesByVendor?.[vendor.id] || [], 
+    [companyVendorState.companiesByVendor, vendor.id]
+  );
 
-  const companiesLoading = companyState.loading || false;
-  const vendorCompaniesLoading = companyVendorState.loading || false;
+  // Check if this vendor's companies are already loaded
+  const companiesLoaded = useMemo(() => 
+    vendor.id in companyVendorState.companiesByVendor,
+    [companyVendorState.companiesByVendor, vendor.id]
+  );
+
+  // Check if this vendor's companies are currently loading
+  const companiesLoading = useMemo(() => 
+    companyVendorState.loadingVendors?.[vendor.id] || false,
+    [companyVendorState.loadingVendors, vendor.id]
+  );
+
   const vendorCompaniesError = companyVendorState.error || null;
   const assigning = companyVendorState.assigning || false;
 
   const [isAssignOpen, setAssignOpen] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   // Fetch companies assigned to this vendor if not cached
   useEffect(() => {
-    if (vendor.id && !(vendor.id in companyVendorState.companiesByVendor)) {
+    if (vendor.id && !companiesLoaded && !companiesLoading && !hasFetched) {
       dispatch(fetchCompaniesByVendorThunk(vendor.id));
+      setHasFetched(true);
     }
-  }, [vendor.id, dispatch, companyVendorState.companiesByVendor]);
+  }, [vendor.id, companiesLoaded, companiesLoading, hasFetched, dispatch]);
+
+  // Reset hasFetched when vendor changes
+  useEffect(() => {
+    setHasFetched(false);
+  }, [vendor.id]);
 
   // Open assignment modal & fetch all companies if not loaded
   const handleOpenAssign = () => {
@@ -44,11 +61,10 @@ const VendorCard = ({ vendor = {}, onEdit }) => {
   };
 
   // Save assigned companies
- const handleAssignSave = (selectedCompanyIds) => {
-  dispatch(assignCompaniesToVendorThunk({ vendorId: vendor.id, companyIds: selectedCompanyIds }));
-  setAssignOpen(false);
-};
-
+  const handleAssignSave = (selectedCompanyIds) => {
+    dispatch(assignCompaniesToVendorThunk({ vendorId: vendor.id, companyIds: selectedCompanyIds }));
+    setAssignOpen(false);
+  };
 
   return (
     <>
@@ -102,7 +118,7 @@ const VendorCard = ({ vendor = {}, onEdit }) => {
             </span>
           </div>
 
-          {vendorCompaniesLoading && !assignedCompanies.length ? (
+          {companiesLoading && !assignedCompanies.length ? (
             <div className="text-center py-4 text-gray-400 text-sm flex-1 flex items-center justify-center">
               Loading companies...
             </div>

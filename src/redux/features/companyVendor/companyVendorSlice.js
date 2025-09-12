@@ -10,6 +10,7 @@ const initialState = {
   vendorsByCompany: {},    // { [companyId]: [vendors] }
   companiesByVendor: {},   // { [vendorId]: [companies] }
   loading: false,
+  loadingVendors: {},
   assigning: false,
   error: null,
 };
@@ -67,20 +68,24 @@ const companyVendorSlice = createSlice({
       });
 
     // ---------------- Fetch companies by vendor ----------------
-    builder
-      .addCase(fetchCompaniesByVendorThunk.pending, (state) => {
+      builder
+      .addCase(fetchCompaniesByVendorThunk.pending, (state, action) => {
         state.loading = true;
+        state.loadingVendors[action.meta.arg] = true; // track per vendor
         state.error = null;
       })
       .addCase(fetchCompaniesByVendorThunk.fulfilled, (state, action) => {
-        state.loading = false; // ✅ Added missing loading reset
+        state.loading = false;
         const { vendorId, data } = action.payload;
         state.companiesByVendor[vendorId] = data;
+        state.loadingVendors[vendorId] = false;
       })
       .addCase(fetchCompaniesByVendorThunk.rejected, (state, action) => {
         state.loading = false;
+        if (action.meta.arg) {
+          state.loadingVendors[action.meta.arg] = false;
+        }
         state.error = action.payload || 'Failed to fetch companies';
-        // Set empty array for the failed vendor fetch
         if (action.meta.arg) {
           state.companiesByVendor[action.meta.arg] = [];
         }
